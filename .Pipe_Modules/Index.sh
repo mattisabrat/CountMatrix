@@ -11,6 +11,7 @@ while getopts ':i:o:m:n:g:f:' flag; do
 	    n) nThreads=${OPTARG} ;;
 	    g) Annotation=${OPTARG} ;;
 	    f) Index_Flags="${OPTARG}" ;; 
+	    l) LogOut_Destination=${OPTARG} ;;
         *) echo "Unexpected option ${flag}" ;;
     esac
 done
@@ -27,3 +28,11 @@ case ${Mode} in
 esac
 
 eval "${Base_String_a} ${Base_String_b} ${Index_Flags}"
+
+
+##Move the Log.out file from STAR
+case ${Mode} in
+    STAR) 
+        mv $PWD/Log.out ${LogOut_Destination}
+    ;; 
+esac

@@ -116,6 +116,7 @@
             string Annotation           = "Not_A_GTF"
             string Index_Check          = "Not_A_Check"
             string Index_Path           = "Not_A_Path"
+            string LogOut_Path          = "Not_A_Path"
             string Tx2Gene_Path         = "Not_A_Path"
             
         if ( m == "STAR" ) {
@@ -129,7 +130,8 @@
             UnIndexed_FA_base = UnIndexed_FA_base.removeExt()    
             
             Index_Check       = Genome + "/.chk_" + UnIndexed_FA_base + "_idx.txt"
-            Index_Path        = Genome + "/indexed_" + UnIndexed_FA_base       
+            Index_Path        = Genome + "/indexed_" + UnIndexed_FA_base
+            LogOut_Path       = Genome + "/Log.out"       
                 
         } else if( m == "salmon") {
             string[] Transcriptome_ls_Path   = Transcriptome.dirPath()
@@ -154,7 +156,7 @@
         
             sys date >> $Index_Check   
 
-            sys $Pipe_Modules/Index.sh -i $UnIndexed_FA -o $Index_Path -m $m -n $n -g $Annotation -f "$Index_Flags"
+            sys $Pipe_Modules/Index.sh -i $UnIndexed_FA -o $Index_Path -m $m -n $n -g $Annotation -f "$Index_Flags" -l $LogOut_Path
         }
         wait Index_tid
 
