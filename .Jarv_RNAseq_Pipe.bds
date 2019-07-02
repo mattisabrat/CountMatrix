@@ -80,28 +80,6 @@
     if ( !(Trimmed_Reads.isDir()) & t == true ) { Trimmed_Reads.mkdir() }
     
     
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-#Define the End_Crawl function. Will be used extensively.
-#Inputs: Canonical path to directory and string[] of Endings. 
-#Output: string[] of paths to all files in the directory whose names end with the string. Includes extension.
-#--------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    string[] End_Crawl( string Dir_Path, string[] Endings ) {
-        string[] Return_List
-        for ( string Ending : Endings ) {
-            for ( string File : Dir_Path.dirPath() ) {
-                if ( File.endsWith( Ending ) ) {
-                    Return_List += File
-                
-                }
-            }
-        }        
-        return(Return_List)
-    }
-
-
-    
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 #Determine if we need to index a transcriptome or a genome. 
 #Execute Indexing pipe module, if needed, appropriately with all available threads
