@@ -1,0 +1,381 @@
+#!/usr/bin/env bds
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+#Set up default values for all incomig flags. Are automatically overwritten by supplied values
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    string m    = "Not_A_Mode"  #Mode variable
+    string e    = "Not_A_Dir"   #Experimental directory variable 
+    bool t      =  false        #Trimming
+    int n       =  1            #default number of cores per parellel arm
+    bool f      =  false        #Did the user supply flags?
+    
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#Save paths to the important locations as easy to use variables to save later headache.
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    #Top level (even with ppwd)
+        Pipe_Modules    := ppwd + "/.Pipe_Modules"
+        Experiment      := ppwd + "/" + e
+        Default_Flags   := ppwd + "/.Default_Flags"
+    
+    #Input Folders
+        Raw_Reads       := Experiment + "raw_reads"
+        Genome          := Experiment + "genome"
+        Transcriptome   := Experiment + "transcriptome"
+        User_Flags      := Experiment + "flags"
+    
+    #Output Folders
+        Trimmed_Reads   := Experiment + "trimmed_reads"
+        FastQC_Reports  := Experiment + "fastqc_reports"
+        Quant_Files     := Experiment + "quant_files"
+    
+    
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+#If the user supplied flags, read them in, otherwise read in default flags
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    string Index_Flags_Path     = "Not_A_Path"
+    string Quant_Flags_Path     = "Not_A_Path"
+    string Trim_Flags_Path      = "Not_A_Path"
+    string Aggregate_Flags_Path = "Not_A_Path"
+    
+    if (f == true) {
+        #Set paths to the flag files
+        Index_Flags_Path     = User_Flags + "/" + m + "_index_flags.txt"
+        Quant_Flags_Path     = User_Flags + "/" + m + "_quant_flags.txt"
+        Trim_Flags_Path      = User_Flags + "/" +  "trimmomatic_flags.txt"
+        Aggregate_Flags_Path = User_Flags + "/" + m + "_aggregate_flags.txt"
+        
+        #If the files don't exist, revert to the default
+            #allows flags to be passed for only one module while using defaults for others
+        if ( ! Index_Flags_Path.exists() )     { Index_Flags_Path = Default_Flags + "/" + m + "_index_flags.txt" }
+        if ( ! Quant_Flags_Path.exists() )     { Quant_Flags_Path = Default_Flags + "/" + m + "_quant_flags.txt" }
+        if ( ! Trim_Flags_Path.exists() )      { Trim_Flags_Path  = Default_Flags + "/" + "trimmomatic_flags.txt" }
+        if ( ! Aggregate_Flags_Path.exists() ) { Aggregate_Flags_Path = Default_Flags + "/" + m + "_aggregate_flags.txt" }
+                
+     
+    } else {
+        Index_Flags_Path     = Default_Flags + "/" + m + "_index_flags.txt"
+        Quant_Flags_Path     = Default_Flags + "/" + m + "_quant_flags.txt"
+        Trim_Flags_Path      = Default_Flags + "/" + "trimmomatic_flags.txt"
+        Aggregate_Flags_Path = Default_Flags + "/" + m + "_aggregate_flags.txt" 
+    }
+    
+    Index_Flags      := Index_Flags_Path.read()
+    Quant_Flags      := Quant_Flags_Path.read()
+    Trim_Flags       := Trim_Flags_Path.read()
+    Aggregate_Flags  := Aggregate_Flags_Path.read()
+
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+#Check for the existence of needed output directories and make if them if they don't exist
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+	if ( !FastQC_Reports.isDir() )              { FastQC_Reports.mkdir() }  
+    if ( !Quant_Files.isDir() )                 { Quant_Files.mkdir() } 
+    if ( !(Trimmed_Reads.isDir()) & t == true ) { Trimmed_Reads.mkdir() }
+    
+    
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+#Define the End_Crawl function. Will be used extensively.
+#Inputs: Canonical path to directory and string[] of Endings. 
+#Output: string[] of paths to all files in the directory whose names end with the string. Includes extension.
+#--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    string[] End_Crawl( string Dir_Path, string[] Endings ) {
+        string[] Return_List
+        for ( string Ending : Endings ) {
+            for ( string File : Dir_Path.dirPath() ) {
+                if ( File.endsWith( Ending ) ) {
+                    Return_List += File
+                
+                }
+            }
+        }        
+        return(Return_List)
+    }
+
+
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+#Determine if we need to index a transcriptome or a genome. 
+#Execute Indexing pipe module, if needed, appropriately with all available threads
+#Save the path to the indexed transcript/gen-ome for later convenience
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    #Determine if running in STAR or salmon mode and set what we will be indexing off of that  
+        
+        #Initialize variables outside of if/else statement that we will need later.
+            string UnIndexed_FA         = "Not_A_FA"
+            string UnIndexed_FA_base    = "Not_A_Basename"
+            string Annotation           = "Not_A_GTF"
+            string Index_Check          = "Not_A_Check"
+            string Index_Path           = "Not_A_Path"
+            string Tx2Gene_Path         = "Not_A_Path"
+            
+        if ( m == "STAR" ) {
+            string[] Genome_ls_Path   = Genome.dirPath()
+            for ( string File : Genome_ls_Path ) {
+                if ( File.endsWith( ".fa" ) )  { UnIndexed_FA = File }
+                if ( File.endsWith( ".gtf" ) ) { Annotation   = File }  
+            }
+            
+            UnIndexed_FA_base = UnIndexed_FA.baseName()
+            UnIndexed_FA_base = UnIndexed_FA_base.removeExt()    
+            
+            Index_Check       = Genome + "/.chk_" + UnIndexed_FA_base + "_idx.txt"
+            Index_Path        = Genome + "/indexed_" + UnIndexed_FA_base       
+                
+        } else if( m == "salmon") {
+            string[] Transcriptome_ls_Path   = Transcriptome.dirPath()
+            for ( string File : Transcriptome_ls_Path ) {
+                if ( File.endsWith( ".fa" ) )  { UnIndexed_FA = File }
+                if ( File.endsWith( ".csv" ) ) { Tx2Gene_Path = File }  
+            }
+            
+            UnIndexed_FA_base = UnIndexed_FA.baseName()
+            UnIndexed_FA_base = UnIndexed_FA_base.removeExt()    
+            
+            Index_Check = Transcriptome + "/.chk_" + UnIndexed_FA_base + "_idx.txt"
+            Index_Path  = Transcriptome + "/indexed_" + UnIndexed_FA_base
+        }
+              
+        
+    #Create the output directory in advance because the STAR devs are lazy (jk) and didn't take care of that for me.
+        if ( ! Index_Path.isDir() )      { Index_Path.mkdir() }  
+    
+    #Run the Index module
+        string Index_tid = task ( taskName := "Indexing: " + UnIndexed_FA_base, cpus := n,  Index_Check <- UnIndexed_FA) {
+        
+            sys date >> $Index_Check   
+
+            sys $Pipe_Modules/Index.sh -i $UnIndexed_FA -o $Index_Path -m $m -n $n -g $Annotation -f "$Index_Flags"
+        }
+        wait Index_tid
+
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
+#Handle any trimming
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
+      
+if ( t == true ){
+    string[] Raw_Reads_ls = Raw_Reads.dir()
+    par{
+        for( string Sample_Basename : Raw_Reads_ls ) {
+        
+            #Grab the paths to the .fastq.gz file(s) and get the read count
+                Sample_Path         := Raw_Reads + "/" + Sample_Basename
+                string[] Sample_ls   = Sample_Path.dirPath()                     
+                Read_Count          := 0
+                string[] Fastq_Files
+                
+                for ( string File : Sample_ls )  { 
+                    if ( File.endsWith( "fastq.gz" ))  { 
+                        Fastq_Files += File 
+                        Read_Count = Read_Count+1
+                    }
+                } 
+                
+                #Join the paths into a single variable for easy handling
+                    Fastqs_Joined   := Fastq_Files.join()       
+                                    
+                #Define the path to the trimmomatic .jar file, can't be set generically in the wrapper with PATH like other packages
+                    Jar := ppwd + "/.Trimmomatic-0.36/trimmomatic-0.36.jar"
+                             
+                #Set up the directory for the new, trimmed reads and destinations for output files
+                    Trim_Check       := Sample_Path + "/.chk_" + Sample_Basename + "_trim.txt"
+                    Trim_Destination := Trimmed_Reads + "/" + Sample_Basename
+                    Trim_Output_File := Trim_Destination + "/" + Sample_Basename + "_trimmed.fastq.gz"
+                    Trim_Log         := Trim_Destination + "/" + Sample_Basename + "_trimLog.txt"
+                        
+                    if ( !Trim_Destination.isDir() )      { Trim_Destination.mkdir() }  
+                   
+                #Task for the trimming script                          
+                    string Trim_tid = task ( taskName := "Trimming: " + Sample_Basename, Trim_Check <- Fastq_Files[0], cpus := n) {
+                    
+                        #Create and fill the check files
+                            sys date >> $Trim_Check
+                        
+                        #Run the Trim script
+                            sys $Pipe_Modules/Trim.sh -i "$Fastqs_Joined" -o $Trim_Output_File -r $Read_Count -n $n -f "$Trim_Flags" -j $Jar 2> $Trim_Log
+                        
+                    }
+        }
+    }   
+}
+  
+wait
+  
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
+#For each sudirectory (experimental sample) in Raw_Reads, determine if single or paired-end reads
+#Execute FastQC pipe module, as needed on a sample by sample basis.
+#Once FastQC is done for any given sample, start the Alignment pipe module on that sample again as needed.
+#The number of cores available for any given sample are set with the -n flag
+#----------------------------------------------------------------------------------------------------------------------------------------------------------    
+    
+    #Create a list of all the samples in Raw_Reads
+        string[] Raw_Reads_ls = Raw_Reads.dir()
+    
+    #parellelized for loop where each loop iteration is a different sample within either the Raw_Reads or Trimmed_Reads directory
+        
+        Read_Count := 0  #I need it later, so I'm definig it outside the for loop because variable scoping.
+        par{
+            for( string Sample_Basename : Raw_Reads_ls ) {
+                
+                #Determine if reads are paried or unpaired. 
+                #Grab the paths to the .fastq.gz file(s) for use in subsequent modules
+                    
+                    Sample_Path            :=  Raw_Reads + "/" + Sample_Basename
+                    string[] End_String     = [ "fastq.gz" , "Not_An_Ending"]
+                    string[] Sample_ls      =  Sample_Path.dirPath()                     
+                    Read_Count              =  0
+                    string[] Fastq_Files                    
+                    
+                    #Redefie the necessary varaibles to point to trimmed files and to scrape using the trimmed file endings if Trimmed
+                    if ( t == true ) {
+                        Sample_Path = Trimmed_Reads + "/" + Sample_Basename
+                        End_String  = ["P.fastq.gz" , "_trimmed.fastq.gz"]
+                        Sample_ls   = Sample_Path.dirPath()
+                    }
+                    
+                    
+                    for ( string File : Sample_ls )  {
+                        if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] ))  { 
+                            Fastq_Files += File 
+                            Read_Count = Read_Count+1
+                        }
+                    } 
+                    
+                    
+                    #Join the paths into a single variable for easy handling
+                    Fastqs_Joined   := Fastq_Files.join()
+                  
+
+                    
+                #Run the fastQC----------------------------------------------------------------------------------------------------------------------------
+                
+                    FastQC_Check        := Sample_Path + "/.chk_" + Sample_Basename + "_fastqc.txt"
+                    FastQC_Destination  := FastQC_Reports + "/" + Sample_Basename
+                    
+                    if ( !FastQC_Destination.isDir() )      { FastQC_Destination.mkdir() }  
+                    
+                    string FastQC_tid = task ( taskName := "FastQC: " + Sample_Basename, FastQC_Check <- Fastq_Files[0], cpus := n) {
+                        
+                        #Create and fill the check files
+                            sys date >> $FastQC_Check
+                        
+                        #run the FastQC scipt
+                            sys $Pipe_Modules/QC.sh -i "$Fastqs_Joined" -o $FastQC_Destination
+                    }
+
+                
+                
+                #Run the alignment-------------------------------------------------------------------------------------------------------------------------
+                    
+                    Quant_Check         := Sample_Path + "/.chk_" + Sample_Basename + "_quant.txt"
+                    Quant_Destination   := Quant_Files + "/" + Sample_Basename + "/"
+                    
+                    if ( !Quant_Destination.isDir() )      { Quant_Destination.mkdir() }  
+                    
+                    string Read_1 = "Not_A_File"
+                    string Read_2 = "Not_A_File"
+                    
+                    if ( Read_Count == 1 ) {
+                        Read_1 = Fastq_Files[0]
+                    } else if ( Read_Count == 2 ) {
+                        Read_1 = Fastq_Files[0]
+                        Read_2 = Fastq_Files[1]
+                    }
+                    
+                    string Align_tid = task (taskName := "Quantifying " + Sample_Basename, Quant_Check <- Fastq_Files[0], cpus := n) {
+                    
+                        #Create and fill the check files
+                            sys date >> $Quant_Check
+                            
+                        #run the Quantification script
+                            sys $Pipe_Modules/Quant.sh -o $Quant_Destination -m $m -n $n -1 $Read_1 -2 $Read_2 -r $Read_Count -i $Index_Path -f "$Quant_Flags"
+                    }            
+            }
+        }
+
+        wait
+
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+#Next we need to aggreage the Alignment / Quant files into a single file (Count matrix) for the whole experiment to allow for easy importing into R. 
+#This Matrix will be left at the head of the Experiment directory. 
+#Uses featureCounts for STAR bam files and quantmerge for salmon files.
+#If using salmon mode, this matrix will still be at the gene level as we use tximport for the aggregation. 
+#---------------------------------------------------------------------------------------------------------------------------------------------------------  
+
+    #Build two lists. File names and corresponding file paths. These MUST BE IN THE SAME ORDER. 
+    #We CANNOT RELY on the Raw_Reads_ls variable, beause the parelleization of the previous for loop will likely scramble the ordering of samples. 
+        string[] Quant_Sample_Names = Quant_Files.dir()
+        string[] Quant_File_Paths
+        string[] Quant_Samples_ls   = Quant_Files.dirPath()
+        
+        #We need to crawl through each sample's Quant subdirectory, will use a nested for loop.          
+            
+        #Set up the End_String variable (again)
+            string[] Aggregate_End_String
+            
+            if ( m == "STAR" ) {
+                Aggregate_End_String = [ "bam", "sam" ]
+            } else if (m == "salmon" ) {
+                Aggregate_End_String = [ "sf", "Not_An_Ending" ]
+            }
+            
+        #Pull with files that end with End_String            
+            for ( string Sample : Quant_Samples_ls ) {
+            Sample_Contents_ls := Sample.dirPath()              
+                for ( string File : Sample_Contents_ls ) {             
+                    if ( File.endsWith( Aggregate_End_String[0] ) || File.endsWith( Aggregate_End_String[1] )) {                   
+                        Quant_File_Paths += File
+                    
+                    }
+                }
+            }
+            
+    #Join the paths and names each into a string. Will be broken apart again in the module, can't find an easier way to pass lists.
+        Quant_File_Paths_Joined   := Quant_File_Paths.join(' SPLIT ')        
+        Quant_Sample_Names_Joined := Quant_Sample_Names.join(' SPLIT ')          
+    
+    #Set up the check file and output destinations of the Aggregation
+        Aggregate_Check         := Quant_Files + "/.chk_aggregate.txt"
+        Aggregate_Destination   := Experiment + "/Count_Matrix.csv" 
+        RData_Destination       := Experiment + "/Count_Matrix.RData" 
+    
+    #If using star, prepare output for the featurecount log
+        Feature_Counts := Experiment + "feature_counts"
+        FC_Destination := Feature_Counts + "/ThisExperiment" + "_counts.txt.summary"
+        if (m == "STAR" ) {Feature_Counts.mkdir()}
+        
+    #Run the Aggregation
+        string Aggregate_tid = task ( taskName := "Aggregating Count Data: "+e, cpus := n,  Aggregate_Check <- Quant_File_Paths) {
+        
+            #Create and fill the check files
+                sys date >> $Aggregate_Check
+    
+            #Run the Aggregation script
+                sys Rscript --vanilla $Pipe_Modules/Aggregate.R -i "$Quant_File_Paths_Joined" -o $Aggregate_Destination -m $m -n $n -g $Annotation -d $RData_Destination -r $Read_Count -s "$Quant_Sample_Names_Joined" -t $Tx2Gene_Path -f "$Aggregate_Flags" -c "$FC_Destination"
+        }
+        wait
+    
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+#Finally we need to bring all of the reports from all softwares throughout the pipeline together into one high level QC report using MultiQC
+#This QC report will be left at the head of the Experiment directory
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    #Run the MultiQC
+        string MultiQC_tid = task ( taskName := "Creating QC Report: "+e, cpus := n) {
+        
+            #Run the MultiQC script
+                sys $Pipe_Modules/MultiQC.sh -e $Experiment
+        }
+    

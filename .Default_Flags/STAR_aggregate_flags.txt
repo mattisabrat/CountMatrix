@@ -1,0 +1,1 @@
+minFragLength = 40
