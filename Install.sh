@@ -53,7 +53,7 @@ export PYTHONPATH=$PWD/.Python/bin
 #Execute the package installer scripts
 
 Rscript --vanilla $PWD/.Install_Scripts/R_packages.R 
-$ ./.Install_Scripts/Python_packages.sh 
+./.Install_Scripts/Python_packages.sh 
 
 
 ##---------------------------------------------------------------------
