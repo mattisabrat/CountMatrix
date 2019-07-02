@@ -3,7 +3,7 @@
 echo "Indexing Script Called"
 
  
-while getopts ':i:o:m:n:g:f:' flag; do
+while getopts ':i:o:m:n:g:f:l:' flag; do
     case ${flag} in
         i) UnIndexed_FA=${OPTARG} ;;
         o) Index_Destination=${OPTARG} ;;
