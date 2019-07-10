@@ -47,15 +47,19 @@ Good news: It self assembles.
 * -f : Pipeline passes user supplied flags
 
 ## Experimental Directory Formatting
-Experimental directories must be correctly formatted and contain the requisite files for the pathway to run. 
+Experimental directories must be correctly formatted and contain the requisite files for the pathway to run. Regardless of pipeline mode, the Experimental directory must contain a folder named **raw_reads** which contains a subfolder for each sample, lets call them sample_folders, with the sample name as the sample_folder name. Each of these sample_folders  must contain the .fastq.gz files for that sample. The actual filenames don't really matter since it assigns the sample name based on the sample_folder not the .fastq.gz, though its always best to be consistent when naming files. 
 
-### Required Files and Formats
-Both the STAR and Salmon workflows require .fastp.gz Illumina read files. 
-#### STAR
-
-#### Salmon
+The pipeline requires the read files be in .fastq.gz format.
 
 ### Paired vs. Single End Reads
+Don't worry about it. Place the read files into sample folders in raw_reads and the pipeline will infer if you've given it PE or SE reads based on the number of .fastq.gz files. It should even be able to run if an experiment contains a mix of PE and SE samples, though I don't know why you would ever do that. 
+
+### STAR
+Both the STAR and Salmon workflows require .fastp.gz Illumina read files. 
+
+### Salmon
+
+### Flags
 
 ## Flags
 ### Default Flags
