@@ -10,7 +10,7 @@ The pipeline itself is uses [BigDataScript (BDS)](http://pcingola.github.io/BigD
 
 ## Credit where credit is due
 
-This pipeline is an automated wrapper for incredible pre-exisiting softwares. Please check out the work involved in everything under the hood.
+This pipeline is an automated wrapper for incredible pre-exisiting softwares. Please check out the work involved in everything under the hood:
 * [BigDataScript](http://pcingola.github.io/BigDataScript/)
 * [STAR](https://github.com/alexdobin/STAR)
 * [Salmon](https://github.com/COMBINE-lab/salmon)
@@ -58,15 +58,63 @@ Don't worry about it. Place the read files into sample folders in raw_reads and 
 In STAR mode, the Experimental_Directory must contain a folder named **genome**. This folder needs to contain an unindexed .fa genome file and a .gtf annotation file to build the genome indices.
 
 ### Salmon
-In Salmon mode, the Experimental_Directory must contain a folder named **transcriptome**.
+In Salmon mode, the Experimental_Directory must contain a folder named **transcriptome**. This folder needs to contain a .fa trasnscriptome file and a .csv file for aggregating transcript level abundances to genes using tximport. For more info on constructing this .csv file, see the [tximport docs](https://bioconductor.org/packages/release/bioc/html/tximport.html).
 
 ### Reusing genome and trascriptome folders
-
-### Flags
+Once the pipeline has been run, you can reuse the processed **transcriptome** or **genome** folder in subsequent experiments where the same genome/transcriptome is needed. Simply copy and pasted the whole folder into a new Experimental_Directory. When this new experiment is run through the pipeline, it will skip the indexing steps saving a bit of time. 
 
 ## Flags
+This pipe uses overwritable defaults to manage the options used by each of its consituent softwares. The idea behind this is that a lab could set up the pipeline with their preferred settings. If these default settings are ever inappropriate for an experiment, they can be overwritten for a single pipeline run without having to touch the defaults, leaving the lab's typical pipeline settings unaltered.
+
+The flags, whether default for user supplied, are appended to the base call for each task at the time of execution. For the **Aggregate** calls, which are in R, additional options are added before the closing parenthesis. The base calls can be found below. 
+
 ### Default Flags
+Hidden in the head directory of the pipeline is a **.Default_Flags** folder containing a .txt file for each of the tasks which accepts addtional flags. At installation, these should be blank with the exception of trimmomatic_flags.txt because Trimmomatic's base call cannot function without additonal arguments. Before doing any trimming, I strongly recommend reading the [Trimmomatic docs](http://www.usadellab.org/cms/?page=trimmomatic) and adjusting these parameters if necessary. To set the defaults, simply add the options you would like into these documents. 
+
 ### Passing Flags
+To overwrite the default flags for a pipeline run, the -f flag must be provided when invoking the pileline and the Experimental_Directory should contain a folder named **flags**. This folder should contain at least one of the following .txt files:
+
+* *STAR_index_flags.txt*
+* *STAR_quant_flags.txt*
+* *STAR_aggregate_flags.txt*
+* *salmon_index_flags.txt*
+* *salmon_quant_flags.txt*
+* *salmon_aggregate_flags.txt*
+* *trimmomatic_flags.txt*
+
+The contents of each file presents will be used in place of the default flags for that task, without changing the flags for other tasks. For example, if Experimental_Directory/**flags**/ contains only *salmon_quant_flags.txt* then it will run Trimming (if -t), Indexing, and Aggregation according to the defaults, but will run Quantification according to the flags provided in Experimental_Directory/**flags**/*salmon_quant_flags.txt*.
+
+### Base calls
+* STAR indexing :
+
+      STAR --runThreadN ${nThreads} --runMode genomeGenerate --genomeDir ${Index_Destination} --genomeFastaFiles ${UnIndexed_FA} --sjdbGTFfile ${Annotation}
+* STAR quantifying PE :
+
+      STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --outSAMtype BAM SortedByCoordinate --readFilesIn ${Read_1} ${Read_2} --readFilesCommand gunzip -c
+* STAR quantifying SE :
+
+      STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --outSAMtype BAM SortedByCoordinate --readFilesIn ${Read_1} --readFilesCommand gunzip -c
+* STAR aggregating (FeatureCounts) :
+
+      featureCounts( files = Quant_File_Paths, annot.ext = opt$Annotation, isGTFAnnotationFile = TRUE, nthreads = opt$nThreads, isPairedEnd = Is_Paired,)
+* Salmon indexing :
+
+      salmon index -p ${nThreads} -t ${UnIndexed_FA} -i ${Index_Destination}
+* Salmon quantifying PE :
+
+      salmon quant -p ${nThreads} -i ${Index_Path} -o ${Quant_Destination} -l A -1 ${Read_1} -2 ${Read_2}
+* Salmon quantifying SE :
+
+      salmon quant -p ${nThreads} -i ${Index_Path} -o ${Quant_Destination} -l A -r ${Read_1}
+* Salmon aggreagting (tximport) :
+
+      tximport( files = Quant_File_Paths, type = "salmon", tx2gene = tx2gene,)
+* Trimmomatic PE :
+
+      java -jar ${Jar} PE -threads ${nThreads} ${Fastqs_Joined} -baseout ${Trim_Output_File}
+* Trimmomatic SE :
+
+      java -jar ${Jar} SE -threads ${nThreads} ${Fastqs_Joined} ${Trim_Output_File}
 
 ## Software Versions
 
