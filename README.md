@@ -94,7 +94,7 @@ The contents of each file presents will be used in place of the default flags fo
 * STAR quantifying SE :
 
       STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --outSAMtype BAM SortedByCoordinate --readFilesIn ${Read_1} --readFilesCommand gunzip -c
-* STAR aggregating (FeatureCounts) :
+* STAR aggregating (featureCounts) :
 
       featureCounts( files = Quant_File_Paths, annot.ext = opt$Annotation, isGTFAnnotationFile = TRUE, nthreads = opt$nThreads, isPairedEnd = Is_Paired,)
 * Salmon indexing :
@@ -117,7 +117,13 @@ The contents of each file presents will be used in place of the default flags fo
       java -jar ${Jar} SE -threads ${nThreads} ${Fastqs_Joined} ${Trim_Output_File}
 
 ## Software Versions
-
+* R-3.6.0
+* Python-3.5.5
+* STAR-2.7.1a
+* Salmon-0.9.1
+* Trimmomatic-0.36
+* tximport-1.12.3
+* Rsubread-1.34.4
 
 ## Contributors
 This pipeline was written and is maintained by [Matt Davenport](https://github.com/mattisabrat) (mdavenport@rockefeller.edu).
