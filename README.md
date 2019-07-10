@@ -38,19 +38,27 @@ Good news: It self assembles.
 
     ./Jarvis_RNAseq.sh -e ${Experimental_Directory} -m ${Mode}
 
-* -e ${Experimental_Directory} : A correctly formatted experimental directory 
+* -e ${Experimental_Directory} : Full path to a correctly formatted experimental directory 
 * -m ${Mode} : STAR or salmon
 
-### Aditional Options
+### Additional Options
 * -n ${nThreads} : The number of threads to be used by each task within the pipeline, default is 1
 * -t : Activates trimming
 * -f : Pipeline passes user supplied flags
 
-## Experimental Directory Structure
+## Experimental Directory Formatting
+Experimental directories must be correctly formatted and contain the requisite files for the pathway to run. 
 
-## Required files and formats
-### STAR
+### Required Files and Formats
+Both the STAR and Salmon workflows require .fastp.gz Illumina read files. 
+#### STAR
 
-### Salmon
+#### Salmon
 
-## Versions
+### Paired vs. Single End Reads
+
+## Flags
+### Default Flags
+### Passing Flags
+
+## Software Versions
