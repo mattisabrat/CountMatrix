@@ -34,13 +34,17 @@ Good news: It self assembles.
 
     ./Install.sh
 
-## Usage
+## Basic Usage
 
     ./Jarvis_RNAseq.sh -e ${Experimental_Directory} -m ${Mode}
 
-Where {Experimental_Directory} is the name of a **correctly formatted directory** and {Mode} is either **STAR** or **salmon**
+* -e ${Experimental_Directory} : A correctly formatted experimental directory 
+* -m ${Mode} : STAR or salmon
 
-### Options
+### Aditional Options
+* -n ${nThreads} : The number of threads to be used by each task within the pipeline, default is 1
+* -t : Activates trimming
+* -f : Pipeline passes user supplied flags
 
 ## Experimental Directory Structure
 
