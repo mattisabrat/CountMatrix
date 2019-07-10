@@ -328,7 +328,7 @@ wait
     #Set up the check file and output destinations of the Aggregation
         Aggregate_Check         := Quant_Files + "/.chk_aggregate.txt"
         Aggregate_Destination   := Experiment + "/Count_Matrix.csv" 
-        RData_Destination       := Experiment + "/Count_Matrix.RData" 
+        RData_Destination       := Experiment + "/Count_Matrix.rds" 
     
     #If using star, prepare output for the featurecount log
         Feature_Counts := Experiment + "feature_counts"

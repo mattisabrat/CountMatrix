@@ -21,7 +21,7 @@ case ${Mode} in
     salmon) Base_String="salmon quant -p ${nThreads} -i ${Index_Path} -o ${Quant_Destination} -l A"
         case ${Read_Count} in
             1) Read_String="-r ${Read_1}" ;;
-            2) Read_String="-1 ${Read_1} -2 ${Read_2} --discardOrphansQuasi" ;;
+            2) Read_String="-1 ${Read_1} -2 ${Read_2}" ;;
         esac ;;
     STAR) Base_String="STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --outSAMtype BAM SortedByCoordinate" 
         case ${Read_Count} in

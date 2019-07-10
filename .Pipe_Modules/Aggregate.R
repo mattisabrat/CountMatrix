@@ -60,10 +60,10 @@ library("getopt")
                         quote=FALSE, row.names=FALSE, sep="\t")
             
         #Output both the count matrix (.csv) and the entire featureCounts results (.RData)
-            save(Aggregate_Counts, file = opt$RData_Output)
+            saveRDS(Aggregate_Counts, file = opt$RData_Output)
             write.csv2(x = Aggregate_Counts$counts,
                        file = opt$Aggregate_Destination,
-                       row.names = FALSE)
+                       row.names = TRUE)
       
       
     } else if (opt$Mode == "salmon"){
@@ -85,9 +85,9 @@ library("getopt")
             Aggregate_Counts <- eval( parse( text = Full_String ))
         
         #Output the count matrix as (.csv) and (.RData)
-            save(Aggregate_Counts, file = opt$RData_Output)
+            saveRDS(Aggregate_Counts, file = opt$RData_Output)
             write.csv2(x = Aggregate_Counts,
                        file = opt$Aggregate_Destination,
-                       row.names = FALSE)
+                       row.names = TRUE)
         
     }
