@@ -28,11 +28,3 @@ case ${Mode} in
 esac
 
 eval "${Base_String_a} ${Base_String_b} ${Index_Flags}"
-
-
-##Move the Log.out file from STAR
-case ${Mode} in
-    STAR) 
-        mv $PWD/Log.out ${LogOut_Destination}
-    ;; 
-esac

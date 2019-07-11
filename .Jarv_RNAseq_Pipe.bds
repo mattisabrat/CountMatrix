@@ -155,7 +155,7 @@ if ( t == true ){
                 string[] Fastq_Files
                 
                 for ( string File : Sample_ls )  { 
-                    if ( File.endsWith( "fastq.gz" ))  { 
+                    if ( File.endsWith( "fastq.gz" ) || File.endsWith( "fq.gz" ) )  { 
                         Fastq_Files += File 
                         Read_Count = Read_Count+1
                     }
@@ -211,7 +211,7 @@ wait
                 #Grab the paths to the .fastq.gz file(s) for use in subsequent modules
                     
                     Sample_Path            :=  Raw_Reads + "/" + Sample_Basename
-                    string[] End_String     = [ "fastq.gz" , "Not_An_Ending"]
+                    string[] End_String     = [ "fastq.gz" , "fq.gz" ]
                     string[] Sample_ls      =  Sample_Path.dirPath()                     
                     Read_Count              =  0
                     string[] Fastq_Files                    
@@ -219,18 +219,19 @@ wait
                     #Redefie the necessary varaibles to point to trimmed files and to scrape using the trimmed file endings if Trimmed
                     if ( t == true ) {
                         Sample_Path = Trimmed_Reads + "/" + Sample_Basename
-                        End_String  = ["P.fastq.gz" , "_trimmed.fastq.gz"]
+                        End_String  = [ "P.fastq.gz" , "_trimmed.fastq.gz" ]
                         Sample_ls   = Sample_Path.dirPath()
                     }
                     
                     
                     for ( string File : Sample_ls )  {
-                        if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] ))  { 
+                        if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] )) { 
+                            println("Passed IF")
                             Fastq_Files += File 
                             Read_Count = Read_Count+1
                         }
                     } 
-                    
+               
                     
                     #Join the paths into a single variable for easy handling
                     Fastqs_Joined   := Fastq_Files.join()
