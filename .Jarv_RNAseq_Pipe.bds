@@ -226,7 +226,6 @@ wait
                     
                     for ( string File : Sample_ls )  {
                         if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] )) { 
-                            println("Passed IF")
                             Fastq_Files += File 
                             Read_Count = Read_Count+1
                         }

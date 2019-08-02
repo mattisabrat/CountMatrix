@@ -11,4 +11,4 @@ done
     
 
 #Create the report
-    multiqc ${Experiment} -f -o ${Experiment} -n Quality_Control
+    multiqc ${Experiment} -f -o ${Experiment} -n Quality_Control --interactive

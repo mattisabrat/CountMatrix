@@ -32,6 +32,8 @@ library("getopt")
     if ( opt$Mode == "STAR" ) {
         library("Rsubread")
         
+print('  STARTED  ')
+print(length(Sample_Names))
       
     #Use Read_Count to create an Is_Paired  boolean
         if ( opt$Read_Count == 1 ) {
@@ -50,6 +52,8 @@ library("getopt")
         
         #Execute the featureCounts string
             Aggregate_Counts <- eval( parse( text = Full_String ))
+            print(length(colnames(Aggregate_Counts$counts)))
+            print(length(colnames(Aggregate_Counts$stat)))
             colnames(Aggregate_Counts$counts) <- Sample_Names #Replace paths with sample names
             
         #Reformat and sepparate the stats table for multiqc    
