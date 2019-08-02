@@ -23,7 +23,7 @@ case ${Mode} in
             1) Read_String="-r ${Read_1}" ;;
             2) Read_String="-1 ${Read_1} -2 ${Read_2}" ;;
         esac ;;
-    STAR) Base_String="STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --outSAMtype BAM SortedByCoordinate" 
+    STAR) Base_String="STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads}" 
         case ${Read_Count} in
             1) Read_String="--readFilesIn ${Read_1} --readFilesCommand gunzip -c" ;;
             2) Read_String="--readFilesIn ${Read_1} ${Read_2} --readFilesCommand gunzip -c" ;;

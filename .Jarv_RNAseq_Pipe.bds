@@ -19,7 +19,7 @@
     #Top level (even with ppwd)
         Pipe_Modules    := ppwd + "/.Pipe_Modules"
         Experiment      := ppwd + "/" + e
-        Default_Flags   := ppwd + "/.Default_Flags"
+        Default_Flags   := ppwd + "/.Default_Flags/JarvRNAPipe_defaults.config"
     
     #Input Folders
         Raw_Reads       := Experiment + "raw_reads"
@@ -38,37 +38,41 @@
 #If the user supplied flags, read them in, otherwise read in default flags
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    string Index_Flags_Path     = "Not_A_Path"
-    string Quant_Flags_Path     = "Not_A_Path"
-    string Trim_Flags_Path      = "Not_A_Path"
-    string Aggregate_Flags_Path = "Not_A_Path"
+    #read default flags
+    string{} Flag_Maps =  config( Default_Flags )
     
-    if (f == true) {
-        #Set paths to the flag files
-        Index_Flags_Path     = User_Flags + "/" + m + "_index_flags.txt"
-        Quant_Flags_Path     = User_Flags + "/" + m + "_quant_flags.txt"
-        Trim_Flags_Path      = User_Flags + "/" +  "trimmomatic_flags.txt"
-        Aggregate_Flags_Path = User_Flags + "/" + m + "_aggregate_flags.txt"
+    #Init the flag variables bec scopng sucks
+    string Index_Flags     = "Not_A_Flag"
+    string Quant_Flags     = "Not_A_Flag"
+    string Trim_Flags      = "Not_A_Flag"
+    string Aggregate_Flags = "Not_A_Flag"
+    string MultiQC_Flags   = "Not_A_Flag"
+    
+    #read user flags
+    if ( f == true ) {
+        Flag_Maps = config( User_Flags, Flag_Maps )
+    } 
+
+    #parse the map to get our flags              
+    if ( m == "STAR" ) {
+    
+        Index_Flags     = Flag_Maps{ "STAR_index_flags" }
+        Quant_Flags     = Flag_Maps{ "STAR_quant_flags" }
+        Trim_Flags      = Flag_Maps{ "trimmomatic_flags" }
+        Aggregate_Flags = Flag_Maps{ "STAR_aggregate_flags" }
+        MultiQC_Flags   = Flag_Maps{ "multiqc_flags" }
         
-        #If the files don't exist, revert to the default
-            #allows flags to be passed for only one module while using defaults for others
-        if ( ! Index_Flags_Path.exists() )     { Index_Flags_Path = Default_Flags + "/" + m + "_index_flags.txt" }
-        if ( ! Quant_Flags_Path.exists() )     { Quant_Flags_Path = Default_Flags + "/" + m + "_quant_flags.txt" }
-        if ( ! Trim_Flags_Path.exists() )      { Trim_Flags_Path  = Default_Flags + "/" + "trimmomatic_flags.txt" }
-        if ( ! Aggregate_Flags_Path.exists() ) { Aggregate_Flags_Path = Default_Flags + "/" + m + "_aggregate_flags.txt" }
-                
-     
-    } else {
-        Index_Flags_Path     = Default_Flags + "/" + m + "_index_flags.txt"
-        Quant_Flags_Path     = Default_Flags + "/" + m + "_quant_flags.txt"
-        Trim_Flags_Path      = Default_Flags + "/" + "trimmomatic_flags.txt"
-        Aggregate_Flags_Path = Default_Flags + "/" + m + "_aggregate_flags.txt" 
-    }
+    } else if ( m == "salmon" ){
+        
+        Index_Flags     = Flag_Maps{ "salmon_index_flags" }
+        Quant_Flags     = Flag_Maps{ "salmon_quant_flags" }
+        Trim_Flags      = Flag_Maps{ "trimmomatic_flags" }
+        Aggregate_Flags = Flag_Maps{ "salmon_aggregate_flags" }
+        MultiQC_Flags   = Flag_Maps{ "multiqc_flags" }
+    }  
     
-    Index_Flags      := Index_Flags_Path.read()
-    Quant_Flags      := Quant_Flags_Path.read()
-    Trim_Flags       := Trim_Flags_Path.read()
-    Aggregate_Flags  := Aggregate_Flags_Path.read()
+    
+
 
     
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -356,6 +360,6 @@ wait
         string MultiQC_tid = task ( taskName := "Creating QC Report: "+e, cpus := n) {
         
             #Run the MultiQC script
-                sys $Pipe_Modules/MultiQC.sh -e $Experiment
+                sys $Pipe_Modules/MultiQC.sh -e $Experiment -f $"$MultiQC_Flags"
         }
     
