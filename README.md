@@ -69,20 +69,11 @@ This pipe uses overwritable defaults to manage the options used by each of its c
 The flags, whether default for user supplied, are appended to the base call for each task at the time of execution. For the **Aggregate** calls, which are in R, additional options are added before the closing parenthesis. The base calls can be found below. 
 
 ### Default Flags
-Hidden in the head directory of the pipeline is a **.Default_Flags** folder containing a .txt file for each of the tasks which accepts addtional flags. At installation, these should be blank with the exception of trimmomatic_flags.txt because Trimmomatic's base call cannot function without additonal arguments. Before doing any trimming, I strongly recommend reading the [Trimmomatic docs](http://www.usadellab.org/cms/?page=trimmomatic) and adjusting these parameters if necessary. To set the defaults, simply add the options you would like into these documents. 
+Hidden in the head directory of the pipeline is a **.Default_Flags** folder containing a JarvRNAPipe_defaults.config file with the default flags for each task. Edit to set up your defaults, see their respective docs (linked above) for how each software uses flags. 
 
 ### Passing Flags
-To overwrite the default flags for a pipeline run, the -f flag must be provided when invoking the pileline and the Experimental_Directory should contain a folder named **flags**. This folder should contain at least one of the following .txt files:
+To overwrite the default flags for a pipeline run, the -f flag must be provided when invoking the pileline and the Experimental_Directory should contain a folder named **flags**. This folder should contain a **user_flags.config** file. Any flags provided in this file will overwrite the corresponding default flags. The pipeline will continue to use the defaults for all tasks not specified in user_flags.config.
 
-* *STAR_index_flags.txt*
-* *STAR_quant_flags.txt*
-* *STAR_aggregate_flags.txt*
-* *salmon_index_flags.txt*
-* *salmon_quant_flags.txt*
-* *salmon_aggregate_flags.txt*
-* *trimmomatic_flags.txt*
-
-The contents of each file presents will be used in place of the default flags for that task, without changing the flags for other tasks. For example, if Experimental_Directory/**flags**/ contains only *salmon_quant_flags.txt* then it will run Trimming (if -t), Indexing, and Aggregation according to the defaults, but will run Quantification according to the flags provided in Experimental_Directory/**flags**/*salmon_quant_flags.txt*.
 
 ### Base calls
 * STAR indexing :
@@ -90,10 +81,10 @@ The contents of each file presents will be used in place of the default flags fo
       STAR --runThreadN ${nThreads} --runMode genomeGenerate --genomeDir ${Index_Destination} --genomeFastaFiles ${UnIndexed_FA} --sjdbGTFfile ${Annotation}
 * STAR quantifying PE :
 
-      STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --outSAMtype BAM SortedByCoordinate --readFilesIn ${Read_1} ${Read_2} --readFilesCommand gunzip -c
+      STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --readFilesIn ${Read_1} ${Read_2} --readFilesCommand gunzip -c
 * STAR quantifying SE :
 
-      STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --outSAMtype BAM SortedByCoordinate --readFilesIn ${Read_1} --readFilesCommand gunzip -c
+      STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads} --readFilesIn ${Read_1} --readFilesCommand gunzip -c
 * STAR aggregating (featureCounts) :
 
       featureCounts( files = Quant_File_Paths, annot.ext = opt$Annotation, isGTFAnnotationFile = TRUE, nthreads = opt$nThreads, isPairedEnd = Is_Paired,)
@@ -115,7 +106,15 @@ The contents of each file presents will be used in place of the default flags fo
 * Trimmomatic SE :
 
       java -jar ${Jar} SE -threads ${nThreads} ${Fastqs_Joined} ${Trim_Output_File}
+      
+* MultiQC
 
+      multiqc ${Experiment} -f -o ${Experiment} -n Quality_Control
+      
+* FastQC
+
+      fastqc ${Fastqs_Joined} --outdir ${FastQC_Destination}
+      
 ## Software Versions
 * R-3.6.0
 * Python-3.5.5
