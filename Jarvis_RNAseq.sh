@@ -4,10 +4,13 @@
 #--------------------------------------------------------------------------
 #Set up the Path so that all aspects of the pipeline are invocable
 	#Setting the path within the pipeline instead of within the environment
-	#adds portability
+	#adds portability and prevents user error
 #--------------------------------------------------------------------------
 
 PATH=$(getconf PATH)
+java_dir="$(which java)"
+java_dir=${java_dir%java}
+export PATH=:"$java_dir"
 export PATH=$PATH:$PWD/.bds
 export PATH=$PATH:$PWD/.Salmon/bin
 export PATH=$PATH:$PWD/.STAR/source
@@ -16,7 +19,7 @@ export PATH=$PATH:$PWD/.R/bin
 export PATH=$PATH:$PWD/.Python/bin
 export PYTHONPATH=$PWD/.Python/bin
 
-
+echo $PATH
 #-------------------------------------------------------------------------
 #Read in the Experimental Directory supplied on the mandatory -e flag
 #Determine if the pipeline is being run in STAR of salmon mode 
