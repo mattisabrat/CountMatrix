@@ -19,7 +19,6 @@ export PATH=$PATH:$PWD/.R/bin
 export PATH=$PATH:$PWD/.Python/bin
 export PYTHONPATH=$PWD/.Python/bin
 
-echo $PATH
 #-------------------------------------------------------------------------
 #Read in the Experimental Directory supplied on the mandatory -e flag
 #Determine if the pipeline is being run in STAR of salmon mode 
