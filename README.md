@@ -21,7 +21,7 @@ This pipeline is an automated wrapper for incredible pre-exisiting softwares. Pl
 * [MultiQC](https://github.com/ewels/MultiQC)
 
 ## Prerequisites
-* Java 1.8 - Required by [BigDataScript](http://pcingola.github.io/BigDataScript/)
+* Java - Required by [BigDataScript](http://pcingola.github.io/BigDataScript/)
 
 ## Installation
 Bad news:  The only way to install is through git and I've only tried it so far on Linux systems. 
