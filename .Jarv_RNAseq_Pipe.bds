@@ -29,7 +29,7 @@ User_Flags      := Experiment + "flags"
 #Output Folders
 Trimmed_Reads   := Experiment + "trimmed_reads"
 FastQC_Reports  := Experiment + "fastqc_reports"
-Aggregates     := Experiment + "aggregate_counts"
+Aggregates      := Experiment + "aggregate_counts"
 Quant_Files     := Experiment + "quant_files"
     
     
@@ -311,7 +311,7 @@ par{
         Sample_Path            := Quant_Files + "/" + Sample_Basename
         string[] End_String     = [ "bam", "sam", ".sf" ]
         string[] Sample_ls      = Sample_Path.dirPath()                     
-        string Bam_File                    
+        string Quant_File                    
                     
                     
         for ( string File : Sample_ls )  {

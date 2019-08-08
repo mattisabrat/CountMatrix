@@ -55,6 +55,7 @@ library("getopt")
             
         #Output the count vecotr (.rds) 
             saveRDS(Aggregate_Counts, file = opt$RData_Output)
+            
 
       
       
