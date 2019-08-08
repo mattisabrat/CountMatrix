@@ -4,7 +4,7 @@ library("getopt")
 
 #Read in flags
     spec <- matrix(c(
-      'Bam_Path',      'i', 1, "character",
+      'Quant_Path',              'i', 1, "character",
       'Aggregate_Destination', 'o', 1, "character",
       'Mode',                  'm', 1, "character",
       'nThreads',              'n', 1, "integer",
@@ -19,8 +19,8 @@ library("getopt")
     opt <- getopt(spec)
     
 #Break apart the list variables that had to be read in as a single string
-    Quant_File_Paths <- opt$Bam_Path  
-    Sample_Names <- opt$Sample_Names
+    Quant_File_Path <- c(opt$Quant_Path)  
+    Sample_Names    <- c(opt$Sample_Names)
     
 
 #Determine if STAR or salmon work flow
@@ -35,7 +35,7 @@ library("getopt")
         }
         
         #Build the strig used to invoke featureCounts
-            Base_String <- paste("featureCounts( files = opt$Bam_Path,",
+            Base_String <- paste("featureCounts( files = opt$Quant_Path,",
                                  "annot.ext = opt$Annotation, isGTFAnnotationFile = TRUE,",
                                  "nthreads  = opt$nThreads, isPairedEnd = Is_Paired,",
                                  sep=" ")
@@ -47,7 +47,7 @@ library("getopt")
             
         #Reformat and sepparate the stats table for multiqc
             colnames(Aggregate_Counts$counts) <- Sample_Names #Replace paths with sample names    
-            colnames(Aggregate_Counts$stat) <- c("Status", Sample_Names) 
+            colnames(Aggregate_Counts$stat)   <- c("Stat", opt$Sample_Names) 
             
         #Output the stats table for multiqc to find
             write.table(Aggregate_Counts$stat, file= opt$FC_Destination,

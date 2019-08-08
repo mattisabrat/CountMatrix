@@ -292,7 +292,7 @@ wait
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 #Next we need to aggreagrate the reads for each file to the level of genes. 
-#These inidividual vectore files will later be concatenated to form the count matrix
+#These inidividual vector files will later be concatenated to form the count matrix
 #Uses featureCounts for STAR bam files and tximport for salmon files.
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -309,14 +309,14 @@ par{
                 
         #Grab the paths to the .fastq.gz file(s) for use in subsequent modules        
         Sample_Path            := Quant_Files + "/" + Sample_Basename
-        string[] End_String     = [ "bam", "sam" ]
+        string[] End_String     = [ "bam", "sam", ".sf" ]
         string[] Sample_ls      = Sample_Path.dirPath()                     
         string Bam_File                    
                     
                     
         for ( string File : Sample_ls )  {
-            if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] )) { 
-                Bam_File = File 
+            if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] ) || File.endsWith( End_String[2] )) { 
+                Quant_File = File 
             }
         } 
                
@@ -334,13 +334,13 @@ par{
         if (m == "STAR" ) {Feature_Counts.mkdir()} #If using star, prepare output for the featurecount log
         
         #Run the aggregation
-        string Aggregate_tid = task ( taskName := "Aggregating Count Data: " + Sample_Basename, cpus := n,  Agg_Check <- Bam_File) {
+        string Aggregate_tid = task ( taskName := "Aggregating Count Data: " + Sample_Basename, cpus := n,  Agg_Check <- Quant_File) {
         
             #Create and fill the check files
             sys date >> $Agg_Check
     
             #Run the Aggregation script
-            sys Rscript $Pipe_Modules/Aggregate.R -i "$Bam_File" -m $m -n $n -g $Annotation -d $Agg_RDS -r $Read_Count -s "$Sample_Basename" -t $Tx2Gene_Path -f "$Aggregate_Flags" -c "$FC_Destination"
+            sys Rscript $Pipe_Modules/Aggregate.R -i "$Quant_File" -m $m -n $n -g $Annotation -d $Agg_RDS -r $Read_Count -s "$Sample_Basename" -t $Tx2Gene_Path -f "$Aggregate_Flags" -c "$FC_Destination"
         }
     }
 }

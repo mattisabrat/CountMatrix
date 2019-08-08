@@ -17,24 +17,47 @@ spec <- matrix(c(
 RDS_File_Paths <- strsplit(x = opt$Agg_Vec_Paths,
                                  split = " SPLIT ",
                                  fixed = TRUE)[[1]]
-data       <-list()
-counts     <-list()
-stat       <-list()
 
-for (r in 1:length(RDS_File_Paths)) {
-    data[[r]]      <- readRDS(RDS_File_Paths[r])
-    counts[[r]]    <- data[[r]]$counts
-    stat[[r]]      <- data[[r]]$stat
-    annotation     <- data[[r]]$annotation  
+#if star
+if (opt$Mode == 'STAR'){
+    data       <-list()
+    counts     <-list()
+    stat       <-list()
+
+    for (r in 1:length(RDS_File_Paths)) {
+        data[[r]]      <- readRDS(RDS_File_Paths[r])
+        counts[[r]]    <- data[[r]]$counts
+        stat[[r]]      <- data[[r]]$stat
+        annotation     <- data[[r]]$annotation  
+    }
+
+    all_counts <- join_all(counts, by=row.names)
+    all_stat   <- join_all(stat,   by=row.names)
+
+    Count_Matrix <- as.data.frame(counts     <- all_counts,
+                                  stat       <- all_stat,
+                                  annotation <- annotation)
+                               
+               
+} else if (opt$Mode == 'salmon') {
+    data       <-list()
+    counts     <-list()
+    abundance  <-list()
+    
+    for (r in 1:length(RDS_File_Paths)) {
+        data[[r]]      <- as.data.frame(readRDS(RDS_File_Paths[r]))
+        counts[[r]]    <- data[[r]]$counts
+        length         <- data[[r]]$length
+        abundance[[r]] <- data[[r]]$abundance      
+    }
+    
+    all_counts      <- join_all(counts,    by=row.names)
+    all_abundance   <- join_all(abundance, by=row.names)
+    
+    Count_Matrix <- as.data.frame(counts     <- all_counts,
+                                  abundance  <- all_abundance,
+                                  length     <- length)
 }
-
-all_counts <- join_all(counts, by=row.names)
-all_stat   <- join_all(stat, by=row.names)
-
-Count_Matrix <- as.data.frame(counts <- all_counts,
-                              stat   <- all_stat,
-                              annotation <- annotation)
-                              
 
 saveRDS(Count_Matrix, file = opt$RDS_Destination)
 write.csv2(x = Count_Matrix$counts,
