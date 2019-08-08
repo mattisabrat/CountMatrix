@@ -55,9 +55,8 @@ if (opt$Mode == 'STAR'){
     all_counts      <- join_all(counts,    by=row.names)
     all_abundance   <- join_all(abundance, by=row.names)
     
-    Count_Matrix <- as.data.frame(counts     <- all_counts,
-                                  abundance  <- all_abundance,
-                                  length     <- length)
+    Count_Matrix <- list(all_counts, all_abundance, length)
+    name(Count_Matrix) <- c('counts', 'abundance', 'length')
 }
 
 saveRDS(Count_Matrix, file = opt$RDS_Destination)
