@@ -74,7 +74,7 @@ fi
 #Execute the pipeline on the specified directory
 #--------------------------------------------------------------------------
 
-bds -c $PWD/.bds/bds.config ./.Jarv_RNAseq_Pipe.bds -e ${Experiment} -m ${Mode} -n ${nThreads} -f ${Provided_Flags} -t ${Trim}
+bds -c $PWD/.bds/bds.config ./.CountMatrix.bds -e ${Experiment} -m ${Mode} -n ${nThreads} -f ${Provided_Flags} -t ${Trim}
 
 #A test file used for debugging
 #./Test.bds -e ${Experiment} -m ${Mode}

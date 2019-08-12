@@ -18,7 +18,7 @@ bool f      =  false        #Did the user supply flags?
 #Top level (even with ppwd)
 Pipe_Modules    := ppwd + "/.Pipe_Modules"
 Experiment      := ppwd + "/" + e
-Default_Flags   := ppwd + "/.Default_Flags/JarvRNAPipe_defaults.config"
+Default_Flags   := ppwd + "/.Default_Flags/CountMatrix_defaults.config"
 
 #Input Folders
 Raw_Reads       := Experiment + "raw_reads"
