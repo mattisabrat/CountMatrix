@@ -36,7 +36,7 @@ Good news: It self assembles.
 
 ## Basic Usage
 
-    ./Jarvis_RNAseq.sh -e ${Experimental_Directory} -m ${Mode}
+    ./CountMatrix.sh -e ${Experimental_Directory} -m ${Mode}
 
 * -e ${Experimental_Directory} : Full path to a correctly formatted experimental directory 
 * -m ${Mode} : STAR or salmon
