@@ -1,4 +1,4 @@
-# JarvRNAPipe2
+# CountMatrix
 Fully Automated RNAseq pipeline, goes from raw reads to count matrix. Includes quality  control.
 
 ## What does it do?
