@@ -95,7 +95,7 @@ string Tx2Gene_Path         = "Not_A_Path"
 if ( m == "STAR" ) {
     string[] Genome_ls_Path   = Genome.dirPath()
     for ( string File : Genome_ls_Path ) {
-        if ( File.endsWith( ".fa" ) )  { UnIndexed_FA = File }
+        if ( File.endsWith( ".fa" ) || File.endsWith( ".fna" ))  { UnIndexed_FA = File }
         if ( File.endsWith( ".gtf" ) ) { Annotation   = File }  
     }
     
