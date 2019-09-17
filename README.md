@@ -28,9 +28,9 @@ Bad news:  The only way to install is through git and I've only tried it so far 
 
 Good news: It self assembles. 
 
-    git clone https://github.com/mattisabrat/JarvRNAPipe2
+    git clone https://github.com/mattisabrat/CountMatrix
 
-    cd JarvRNAPipe2/
+    cd CountMatirx/
 
     ./Install.sh
 
@@ -49,13 +49,13 @@ Good news: It self assembles.
 ## Experimental Directory Formatting
 Your Experimental_Directory must be correctly formatted and contain the requisite files for the pathway to run. Regardless of pipeline mode, the Experimental directory must contain a folder named **raw_reads** which contains a subfolder for each sample, lets call them sample_folders, with the sample name as the sample_folder name. Each of these sample_folders  must contain the .fastq.gz files for that sample. The actual filenames don't really matter since it assigns the sample name based on the sample_folder not the .fastq.gz, though its always best to be consistent when naming files. 
 
-The pipeline requires the read files be in .fastq.gz format.
+The pipeline requires the read files be in .fastq.gz or .fq.gz format.
 
 ### Paired vs. Single End Reads
 Don't worry about it. Place the read files into sample folders in raw_reads and the pipeline will infer if you've given it PE or SE reads based on the number of .fastq.gz files. It should even be able to run if an experiment contains a mix of PE and SE samples, though I don't know why you would ever do that. 
 
 ### STAR
-In STAR mode, the Experimental_Directory must contain a folder named **genome**. This folder needs to contain an unindexed .fa genome file and a .gtf annotation file to build the genome indices.
+In STAR mode, the Experimental_Directory must contain a folder named **genome**. This folder needs to contain an .fa or.fna genome file and a .gtf annotation file to build the genome indices.
 
 ### Salmon
 In Salmon mode, the Experimental_Directory must contain a folder named **transcriptome**. This folder needs to contain a .fa trasnscriptome file and a .csv file for aggregating transcript level abundances to genes using tximport. For more info on constructing this .csv file, see the [tximport docs](https://bioconductor.org/packages/release/bioc/html/tximport.html).
@@ -69,7 +69,7 @@ This pipe uses overwritable defaults to manage the options used by each of its c
 The flags, whether default for user supplied, are appended to the base call for each task at the time of execution. For the **Aggregate** calls, which are in R, additional options are added before the closing parenthesis. The base calls can be found below. 
 
 ### Default Flags
-Hidden in the head directory of the pipeline is a **.Default_Flags** folder containing a JarvRNAPipe_defaults.config file with the default flags for each task. Edit to set up your defaults, see their respective docs (linked above) for how each software uses flags. 
+Hidden in the head directory of the pipeline is a **.Default_Flags** folder containing a **CountMatrix_Defaults.config** file with the default flags for each task. Edit to set up your defaults, see their respective docs (linked above) for how each software uses flags. 
 
 ### Passing Flags
 To overwrite the default flags for a pipeline run, the -f flag must be provided when invoking the pileline and the Experimental_Directory should contain a folder named **flags**. This folder should contain a **user_flags.config** file. Any flags provided in this file will overwrite the corresponding default flags. The pipeline will continue to use the defaults for all tasks not specified in user_flags.config.
