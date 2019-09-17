@@ -31,6 +31,7 @@ Trimmed_Reads   := Experiment + "trimmed_reads"
 FastQC_Reports  := Experiment + "fastqc_reports"
 Aggregates      := Experiment + "aggregate_counts"
 Quant_Files     := Experiment + "quant_files"
+Feature_Counts  := Experiment + "feature_counts"
     
     
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -299,8 +300,9 @@ wait
 #Create a list of all the samples in quant files
 string[] Quant_Files_ls = Quant_Files.dir()
 
-#I want to pass all the paths to these output files to our concatenation script so lets init a variable
-string[] Concat_Paths 
+#I want to pass all the paths to these output files to our concatenation script so lets init some variables.
+string[] Concat_Paths
+
  
     
 #parellelized for loop where each loop iteration is a different sample within either the Quant_Files directory    
@@ -326,8 +328,6 @@ par{
         Agg_Dir        := Aggregates + "/" + Sample_Basename
         Agg_RDS        := Agg_Dir + "/aggregate_vector.rds"
         Concat_Paths   += Agg_RDS
-        Feature_Counts := Experiment + "feature_counts"
-        FC_Destination := Feature_Counts + "/" + Sample_Basename+"_counts.txt.summary"
         
         #Prepare output dir
         if ( !Agg_Dir.isDir() ){ Agg_Dir.mkdir() } 
@@ -340,7 +340,7 @@ par{
             sys date >> $Agg_Check
     
             #Run the Aggregation script
-            sys Rscript $Pipe_Modules/Aggregate.R -i "$Quant_File" -m $m -n $n -g $Annotation -d $Agg_RDS -r $Read_Count -s "$Sample_Basename" -t $Tx2Gene_Path -f "$Aggregate_Flags" -c "$FC_Destination"
+            sys Rscript $Pipe_Modules/Aggregate.R -i "$Quant_File" -m $m -n $n -g $Annotation -d $Agg_RDS -r $Read_Count -s "$Sample_Basename" -t $Tx2Gene_Path -f "$Aggregate_Flags"
         }
     }
 }
@@ -350,30 +350,33 @@ wait
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 #Next we need to grab all those individual aggreagation vector and concatenate them to create the count matrix
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-par{
-    #Prepare the list of aggregate vecotr paths for passing to R
-    Concat_Paths_Joined := Concat_Paths.join(' SPLIT ')
+#Prepare the list of aggregate vecotr paths for passing to R
+Concat_Paths_Joined := Concat_Paths.join(' SPLIT ')
+
     
-    #Path to count matrix
-    Count_Matrix_Path := Experiment + "Count_Matrix.rds"
-    CSV_Path := Experiment + "Count_Matrix.csv"
-    #Run the concatenation
-    string Concat_tid = task ( taskName := "Assembling Count Matrix: "+e, cpus := n) {
+#Path to outputs
+Count_Matrix_Path := Experiment + "Count_Matrix.rds"
+CSV_Path          := Experiment + "Count_Matrix.csv"
+FC_Summary_Path   := Feature_Counts + "/FeatureCountsReport.txt.summary"
 
-        #Run the concatenation script
-        sys Rscript $Pipe_Modules/Concat.R -i "$Concat_Paths_Joined" -m $m -n $n -o $Count_Matrix_Path -c $CSV_Path 
+#Run the concatenation
+string Concat_tid = task ( taskName := "Assembling Count Matrix: "+e, cpus := n) {
 
-    }
+    #Run the concatenation script
+    sys Rscript $Pipe_Modules/Concat.R -i "$Concat_Paths_Joined" -m $m -n $n -o $Count_Matrix_Path -c $CSV_Path -f $FC_Summary_Path
+
+}
+
+wait
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 #Finally we need to bring all of the reports from all softwares throughout the pipeline together into one high level QC report using MultiQC
 #This QC report will be left at the head of the Experiment directory
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    #Run the MultiQC
-    string MultiQC_tid = task ( taskName := "Creating QC Report: "+e, cpus := n) {
+#Run the MultiQC
+string MultiQC_tid = task ( taskName := "Creating QC Report: "+e, cpus := n) {
         
-        #Run the MultiQC script
-        sys $Pipe_Modules/MultiQC.sh -e $Experiment -f $"$MultiQC_Flags"
-    }
+    #Run the MultiQC script
+    sys $Pipe_Modules/MultiQC.sh -e $Experiment -f $"$MultiQC_Flags"
 }

@@ -13,8 +13,7 @@ library("getopt")
       'Read_Count',            'r', 1, "integer",
       'Sample_Names',          's', 1, "character",
       'Flag_String',           'f', 1, "character",
-      'Tx2Gene_Path',          't', 1, "character",
-      'FC_Destination',        'c', 1, "character"),
+      'Tx2Gene_Path',          't', 1, "character"),
     byrow=TRUE, ncol=4)
     opt <- getopt(spec)
     
@@ -47,11 +46,7 @@ library("getopt")
             
         #Reformat and sepparate the stats table for multiqc
             colnames(Aggregate_Counts$counts) <- Sample_Names #Replace paths with sample names    
-            colnames(Aggregate_Counts$stat)   <- c("Stat", opt$Sample_Names) 
-            
-        #Output the stats table for multiqc to find
-            write.table(Aggregate_Counts$stat, file= opt$FC_Destination,
-                        quote=FALSE, row.names=FALSE, sep="\t")
+            colnames(Aggregate_Counts$stat)   <- c("Status", opt$Sample_Names) 
             
         #Output the count vecotr (.rds) 
             saveRDS(Aggregate_Counts, file = opt$RData_Output)
