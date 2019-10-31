@@ -17,7 +17,7 @@ bool f      =  false        #Did the user supply flags?
     
 #Top level (even with ppwd)
 Pipe_Modules    := ppwd + "/.Pipe_Modules"
-Experiment      := ppwd + "/" + e
+Experiment      := e
 Default_Flags   := ppwd + "/.Default_Flags/CountMatrix_defaults.config"
 
 #Input Folders

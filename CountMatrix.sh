@@ -10,14 +10,14 @@
 PATH=$(getconf PATH)
 java_dir="$(which java)"
 java_dir=${java_dir%java}
-export PATH=:"$java_dir"
-export PATH=$PATH:$PWD/.bds
-export PATH=$PATH:$PWD/.Salmon/bin
-export PATH=$PATH:$PWD/.STAR/source
-export PATH=$PATH:$PWD/.FastQC
-export PATH=$PATH:$PWD/.R/bin
-export PATH=$PATH:$PWD/.Python/bin
-export PYTHONPATH=$PWD/.Python/bin
+export PATH="$java_dir":$PATH
+export PATH=$PATH:$PWD/.bds:$PATH
+export PATH=$PATH:$PWD/.Salmon/bin:$PATH
+export PATH=$PATH:$PWD/.STAR/source:$PATH
+export PATH=$PATH:$PWD/.FastQC:$PATH
+export PATH=$PATH:$PWD/.R/bin:$PATH
+export PATH=$PATH:$PWD/.Python/bin:$PATH
+export PYTHONPATH=$PWD/.Python/bin:$PYTHONPATH
 
 #-------------------------------------------------------------------------
 #Read in the Experimental Directory supplied on the mandatory -e flag
