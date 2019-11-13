@@ -11,13 +11,13 @@ PATH=$(getconf PATH)
 java_dir="$(which java)"
 java_dir=${java_dir%java}
 export PATH="$java_dir":$PATH
-export PATH=$PATH:$PWD/.bds:$PATH
-export PATH=$PATH:$PWD/.Salmon/bin:$PATH
-export PATH=$PATH:$PWD/.STAR/source:$PATH
-export PATH=$PATH:$PWD/.FastQC:$PATH
-export PATH=$PATH:$PWD/.R/bin:$PATH
-export PATH=$PATH:$PWD/.Python/bin:$PATH
-export PYTHONPATH=$PWD/.Python/bin:$PYTHONPATH
+export PATH=$PWD/.bds:$PATH
+export PATH=$PWD/.Salmon/bin:$PATH
+export PATH=$PWD/.STAR/source:$PATH
+export PATH=$PWD/.FastQC:$PATH
+export PATH=$PWD/.R/bin:$PATH
+export PATH=$PWD/.Python/bin:$PATH
+export PYTHONPATH=$PWD/.Python/bin
 
 #-------------------------------------------------------------------------
 #Read in the Experimental Directory supplied on the mandatory -e flag
@@ -75,6 +75,3 @@ fi
 #--------------------------------------------------------------------------
 
 bds -c $PWD/.bds/bds.config ./.CountMatrix.bds -e ${Experiment} -m ${Mode} -n ${nThreads} -f ${Provided_Flags} -t ${Trim}
-
-#A test file used for debugging
-#./Test.bds -e ${Experiment} -m ${Mode}
