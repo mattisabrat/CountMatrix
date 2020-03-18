@@ -4,7 +4,6 @@
 #Set up default values for all incomig flags. Are automatically overwritten by supplied values
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-string m    = "Not_A_Mode"  #Mode variable
 string e    = "Not_A_Dir"   #Experimental directory variable 
 bool t      =  false        #Trimming
 int n       =  1            #default number of cores per parellel arm
@@ -51,21 +50,12 @@ string MultiQC_Flags   = "Not_A_Flag"
 #read user flags
 if ( f == true ) { Flag_Maps = config( User_Flags, Flag_Maps )} 
 
-#parse the map to get our flags              
-if ( m == "STAR" ) {    
-    Index_Flags     = Flag_Maps{ "STAR_index_flags" }
-    Quant_Flags     = Flag_Maps{ "STAR_quant_flags" }
-    Trim_Flags      = Flag_Maps{ "trimmomatic_flags" }
-    Aggregate_Flags = Flag_Maps{ "STAR_aggregate_flags" }
-    MultiQC_Flags   = Flag_Maps{ "multiqc_flags" }
-        
-} else if ( m == "salmon" ){        
-    Index_Flags     = Flag_Maps{ "salmon_index_flags" }
-    Quant_Flags     = Flag_Maps{ "salmon_quant_flags" }
-    Trim_Flags      = Flag_Maps{ "trimmomatic_flags" }
-    Aggregate_Flags = Flag_Maps{ "salmon_aggregate_flags" }
-    MultiQC_Flags   = Flag_Maps{ "multiqc_flags" }
-}  
+#parse the map to get our flags                
+Index_Flags     = Flag_Maps{ "STAR_index_flags" }
+Quant_Flags     = Flag_Maps{ "STAR_quant_flags" }
+Trim_Flags      = Flag_Maps{ "Trimmomatic_flags" }
+Aggregate_Flags = Flag_Maps{ "FeatureCounts_aggregate_flags" }
+MultiQC_Flags   = Flag_Maps{ "Msultiqc_flags" }        
     
        
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -91,41 +81,24 @@ string Annotation           = "Not_A_GTF"
 string Index_Check          = "Not_A_Check"
 string Index_Path           = "Not_A_Path"
 string LogOut_Path          = "Not_A_Path"
-string Tx2Gene_Path         = "Not_A_Path"
-            
-if ( m == "STAR" ) {
-    string[] Genome_ls_Path   = Genome.dirPath()
-    for ( string File : Genome_ls_Path ) {
-        if ( File.endsWith( ".fa" ) || File.endsWith( ".fna" ))  { UnIndexed_FA = File }
-        if ( File.endsWith( ".gtf" ) ) { Annotation   = File }  
-    }
-    
-    #name of the genome        
-    UnIndexed_FA_base = UnIndexed_FA.baseName() 
-    UnIndexed_FA_base = UnIndexed_FA_base.removeExt()    
-    
-    #Set the necssary paths        
-    Index_Check       = Genome + "/.chk_" + UnIndexed_FA_base + "_idx.txt"
-    Index_Path        = Genome + "/indexed_" + UnIndexed_FA_base
-    LogOut_Path       = Genome + "/Log.out"       
-                
-} else if( m == "salmon") {
-    string[] Transcriptome_ls_Path   = Transcriptome.dirPath()
-    for ( string File : Transcriptome_ls_Path ) {
-        if ( File.endsWith( ".fa" ) )  { UnIndexed_FA = File }
-        if ( File.endsWith( ".csv" ) ) { Tx2Gene_Path = File }  
-    }
-    
-    #name of the genome                
-    UnIndexed_FA_base = UnIndexed_FA.baseName()
-    UnIndexed_FA_base = UnIndexed_FA_base.removeExt()    
 
-    #Set the necssary paths                    
-    Index_Check = Transcriptome + "/.chk_" + UnIndexed_FA_base + "_idx.txt"
-    Index_Path  = Transcriptome + "/indexed_" + UnIndexed_FA_base
-}            
+#Get the paths to the files
+string[] Genome_ls_Path   = Genome.dirPath()
+for ( string File : Genome_ls_Path ) {
+    if ( File.endsWith( ".fa" ) || File.endsWith( ".fna" ))  { UnIndexed_FA = File }
+    if ( File.endsWith( ".gtf" ) ) { Annotation   = File }  
+}
+    
+#name of the genome        
+UnIndexed_FA_base = UnIndexed_FA.baseName() 
+UnIndexed_FA_base = UnIndexed_FA_base.removeExt()    
+    
+#Set the necessary paths        
+Index_Check       = Genome + "/.chk_" + UnIndexed_FA_base + "_idx.txt"
+Index_Path        = Genome + "/indexed_" + UnIndexed_FA_base
+LogOut_Path       = Genome + "/Log.out"       
         
-#Create the output directory in advance because the STAR devs are lazy (jk) and didn't take care of that for me.
+#Create the output directory
 if ( ! Index_Path.isDir() )      { Index_Path.mkdir() }  
     
 #Run the Index module
@@ -133,7 +106,7 @@ string Index_tid = task ( taskName := "Indexing: " + UnIndexed_FA_base, cpus := 
     
     #Populated the check file and run the task     
     sys date >> $Index_Check   
-    sys $Pipe_Modules/Index.sh -i $UnIndexed_FA -o $Index_Path -m $m -n $n -g $Annotation -f "$Index_Flags" -l $LogOut_Path
+    sys $Pipe_Modules/Index.sh -i $UnIndexed_FA -o $Index_Path -n $n -g $Annotation -f "$Index_Flags" -l $LogOut_Path
 }
 
 wait Index_tid
@@ -164,7 +137,7 @@ if ( t == true ){
             #Join the paths into a single variable for easy handling
             Fastqs_Joined   := Fastq_Files.join()       
                                     
-            #Define the path to the trimmomatic .jar file, can't be set generically in the wrapper with PATH like other packages
+            #Define the path to the trimmomatic .jar file, can't figure out how to do it with PATH like other packages
             Jar := ppwd + "/.Trimmomatic-0.36/trimmomatic-0.36.jar"
                              
             #Set up the directory for the new, trimmed reads and destinations for output files
@@ -284,7 +257,7 @@ par{
             sys date >> $Quant_Check
                             
             #run the Quantification script
-            sys $Pipe_Modules/Quant.sh -o $Quant_Destination -m $m -n $n -1 $Read_1 -2 $Read_2 -r $Read_Count -i $Index_Path -f "$Quant_Flags"
+            sys $Pipe_Modules/Quant.sh -o $Quant_Destination -n $n -1 $Read_1 -2 $Read_2 -r $Read_Count -i $Index_Path -f "$Quant_Flags"
         }            
     }
 }
@@ -331,7 +304,7 @@ par{
         
         #Prepare output dir
         if ( !Agg_Dir.isDir() ){ Agg_Dir.mkdir() } 
-        if (m == "STAR" ) {Feature_Counts.mkdir()} #If using star, prepare output for the featurecount log
+        if (m == "STAR" ) {Feature_Counts.mkdir()} #If using star, prepare output
         
         #Run the aggregation
         string Aggregate_tid = task ( taskName := "Aggregating Count Data: " + Sample_Basename, cpus := n,  Agg_Check <- Quant_File) {
@@ -340,7 +313,7 @@ par{
             sys date >> $Agg_Check
     
             #Run the Aggregation script
-            sys Rscript $Pipe_Modules/Aggregate.R -i "$Quant_File" -m $m -n $n -g $Annotation -d $Agg_RDS -r $Read_Count -s "$Sample_Basename" -t $Tx2Gene_Path -f "$Aggregate_Flags"
+            sys Rscript $Pipe_Modules/Aggregate.R -i "$Quant_File" -n $n -g $Annotation -d $Agg_RDS -r $Read_Count -s "$Sample_Basename" -f "$Aggregate_Flags"
         }
     }
 }
@@ -363,7 +336,7 @@ FC_Summary_Path   := Feature_Counts + "/FeatureCountsReport.txt.summary"
 string Concat_tid = task ( taskName := "Assembling Count Matrix: "+e, cpus := n) {
 
     #Run the concatenation script
-    sys Rscript $Pipe_Modules/Concat.R -i "$Concat_Paths_Joined" -m $m -n $n -o $Count_Matrix_Path -c $CSV_Path -f $FC_Summary_Path
+    sys Rscript $Pipe_Modules/Concat.R -i "$Concat_Paths_Joined" -n $n -o $Count_Matrix_Path -c $CSV_Path -f $FC_Summary_Path
 
 }
 

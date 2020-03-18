@@ -21,8 +21,6 @@ export PYTHONPATH=$PWD/.Python/bin
 
 #-------------------------------------------------------------------------
 #Read in the Experimental Directory supplied on the mandatory -e flag
-#Determine if the pipeline is being run in STAR of salmon mode 
-	#using mandatory -m flag 
 #-------------------------------------------------------------------------
 
 Provided_Dir=false
@@ -31,10 +29,9 @@ Provided_Flags=false
 Trim=false
 nThreads=1
 
-while getopts ':e:m:n:ft' flag; do
+while getopts ':e:n:ft' flag; do
   case "${flag}" in
     e) Provided_Dir=true; Experiment="${OPTARG}";;  #mandatory flag
-    m) Provided_Mode=true; Mode="${OPTARG}";;       #mandatory flag
     f) Provided_Flags=true ;;
     t) Trim=true ;;
     n) nThreads="${OPTARG}" ;;
@@ -58,20 +55,8 @@ else
 	echo "Running ${Experiment}"
 fi 
 
-#Handle incorrect -m usage
-if [ "${Provided_Mode}" = false ]; then
-    echo "ERROR: Pipeline requires -m {salmon, STAR}"
-    exit 3
-elif [ ! "${Mode}" = "salmon" ] && [ ! "${Mode}" = "STAR" ]; then
-    echo "ERROR: Invalid -m input. Options are {salmon, STAR}"
-    exit 4  
-else
-    echo "Pipeline in ${Mode} mode" 
-fi
-
-
 #--------------------------------------------------------------------------
 #Execute the pipeline on the specified directory
 #--------------------------------------------------------------------------
 
-bds -c $PWD/.bds/bds.config ./.CountMatrix.bds -e ${Experiment} -m ${Mode} -n ${nThreads} -f ${Provided_Flags} -t ${Trim}
+bds -c $PWD/.bds/bds.config ./.CountMatrix.bds -e ${Experiment} -n ${nThreads} -f ${Provided_Flags} -t ${Trim}
