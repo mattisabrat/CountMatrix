@@ -55,7 +55,7 @@ Index_Flags     = Flag_Maps{ "STAR_index_flags" }
 Quant_Flags     = Flag_Maps{ "STAR_quant_flags" }
 Trim_Flags      = Flag_Maps{ "Trimmomatic_flags" }
 Aggregate_Flags = Flag_Maps{ "FeatureCounts_aggregate_flags" }
-MultiQC_Flags   = Flag_Maps{ "Msultiqc_flags" }        
+MultiQC_Flags   = Flag_Maps{ "Multiqc_flags" }        
     
        
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
