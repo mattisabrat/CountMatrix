@@ -74,35 +74,20 @@ if ( !(Trimmed_Reads.isDir()) & t == true ) { Trimmed_Reads.mkdir() }
 #Save the path to the indexed transcript/gen-ome for later convenience
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#Initialize variables outside of if/else statement that we will need later.
-string UnIndexed_FA         = "Not_A_FA"
-string UnIndexed_FA_base    = "Not_A_Basename"
-string Annotation           = "Not_A_GTF"
-string Index_Check          = "Not_A_Check"
-string Index_Path           = "Not_A_Path"
-string LogOut_Path          = "Not_A_Path"
-
 #Get the paths to the files
-string[] Genome_ls_Path   = Genome.dirPath()
-for ( string File : Genome_ls_Path ) {
-    if ( File.endsWith( ".fa" ) || File.endsWith( ".fna" ))  { UnIndexed_FA = File }
-    if ( File.endsWith( ".gtf" ) ) { Annotation   = File }  
-}
-    
-#name of the genome        
-UnIndexed_FA_base = UnIndexed_FA.baseName() 
-UnIndexed_FA_base = UnIndexed_FA_base.removeExt()    
-    
+UnIndexed_FA := Genome.dirPath("*.fna").join()
+Annotation := Genome.dirPath("*.gtf").join()
+
 #Set the necessary paths        
-Index_Check       = Genome + "/.chk_" + UnIndexed_FA_base + "_idx.txt"
-Index_Path        = Genome + "/indexed_" + UnIndexed_FA_base
-LogOut_Path       = Genome + "/Log.out"       
+Index_Check       := Genome + "/.chk_idx.txt"
+Index_Path        := Genome + "/indexed_genome" 
+LogOut_Path       := Genome + "/Log.out"       
         
 #Create the output directory
-if ( ! Index_Path.isDir() )      { Index_Path.mkdir() }  
+if ( ! Index_Path.isDir() ) { Index_Path.mkdir() }  
     
 #Run the Index module
-string Index_tid = task ( taskName := "Indexing: " + UnIndexed_FA_base, cpus := n,  Index_Check <- UnIndexed_FA) {
+string Index_tid = task ( taskName := "Indexing Genome", cpus := n,  Index_Check <- UnIndexed_FA) {
     
     #Populated the check file and run the task     
     sys date >> $Index_Check   
@@ -123,17 +108,9 @@ if ( t == true ){
         
             #Grab the paths to the .fastq.gz file(s) and get the read count
             Sample_Path         := Raw_Reads + "/" + Sample_Basename
-            string[] Sample_ls   = Sample_Path.dirPath()                     
-            Read_Count          := 0
-            string[] Fastq_Files
-                
-            for ( string File : Sample_ls )  { 
-                if ( File.endsWith( "fastq.gz" ) || File.endsWith( "fq.gz" ) )  { 
-                    Fastq_Files += File 
-                    Read_Count = Read_Count+1
-                }
-            } 
-                
+            Fastq_Files         := Sample_Path.dirPath("*q.gz")
+            Read_Count          := Fastq_Files.size()    
+                            
             #Join the paths into a single variable for easy handling
             Fastqs_Joined   := Fastq_Files.join()       
                                     
@@ -184,32 +161,13 @@ par{
         #Determine if reads are paried or unpaired. 
         #Grab the paths to the .fastq.gz file(s) for use in subsequent modules            
         Sample_Path            :=  Raw_Reads + "/" + Sample_Basename
-        string[] End_String     = [ "fastq.gz" , "fq.gz" ]
-        string[] Sample_ls      =  Sample_Path.dirPath()                     
-        Read_Count              =  0
-        string[] Fastq_Files                    
-                    
-        #Redefie the necessary varaibles to point to trimmed files scrape using the trimmed file endings if Trimmed
-        if ( t == true ) {
-            Sample_Path = Trimmed_Reads + "/" + Sample_Basename
-            End_String  = [ "P.fastq.gz" , "_trimmed.fastq.gz" ]
-            Sample_ls   = Sample_Path.dirPath()
-        }
-                    
-                    
-        for ( string File : Sample_ls )  {
-            if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] )) { 
-                Fastq_Files += File 
-                Read_Count = Read_Count+1
-            }
-        } 
-               
-                    
+        if ( t == true ) {Sample_Path = Trimmed_Reads + "/" + Sample_Basename}
+        Fastq_Files            := Sample_Path.dirPath("*P.fastq.gz")
+        Read_Count              = Fastq_Files.size()  
+                            
         #Join the paths into a single variable for easy handling
         Fastqs_Joined   := Fastq_Files.join()
                   
-
-                    
         #Run the fastQC----------------------------------------------------------------------------------------------------------------------------
         
         #define the check file and output        
@@ -227,8 +185,6 @@ par{
             #run the FastQC scipt
             sys $Pipe_Modules/QC.sh -i "$Fastqs_Joined" -o $FastQC_Destination
         }
-
-                
                 
         #Run the alignment-------------------------------------------------------------------------------------------------------------------------
         
@@ -295,7 +251,6 @@ par{
             }
         } 
                
-               
         #Set up the check file and output destinations of the Aggregation
         Agg_Check      := Sample_Path + "/.chk_" + Sample_Basename + "_agg.txt"
         Agg_Dir        := Aggregates + "/" + Sample_Basename
@@ -304,7 +259,7 @@ par{
         
         #Prepare output dir
         if ( !Agg_Dir.isDir() ){ Agg_Dir.mkdir() } 
-        if (m == "STAR" ) {Feature_Counts.mkdir()} #If using star, prepare output
+        Feature_Counts.mkdir() #prepare output
         
         #Run the aggregation
         string Aggregate_tid = task ( taskName := "Aggregating Count Data: " + Sample_Basename, cpus := n,  Agg_Check <- Quant_File) {

@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
 echo "Indexing Script Called"
-
  
 while getopts ':i:o:n:g:f:l:' flag; do
-    case ${flag} in
+    case "${flag}" in
         i) UnIndexed_FA=${OPTARG} ;;
         o) Index_Destination=${OPTARG} ;;
 	    n) nThreads=${OPTARG} ;;
