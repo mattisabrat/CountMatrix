@@ -12,14 +12,14 @@
 BasePath=$PWD
 
 #First R
-wget http://cran.r-project.org/src/base/R-3/R-3.6.0.tar.gz
-tar -xzf R-3.6.0.tar.gz
-cd R-3.6.0/
+wget http://cran.r-project.org/src/base/R-3/R-3.6.1.tar.gz
+tar -xzf R-3.6.1.tar.gz
+cd R-3.6.1/
 ./configure --prefix $BasePath/.R
 make && make install
 cd $BasePath
-rm R-3.6.0.tar.gz
-rm -rf R-3.6.0/
+rm R-3.6.1.tar.gz
+rm -rf R-3.6.1/
 
 #Next Python
 wget https://www.python.org/ftp/python/3.5.5/Python-3.5.5.tgz 
@@ -46,13 +46,12 @@ mv STAR-2.7.1a/ .STAR/
 
 #Set up necessary path variables
 PATH=$(getconf PATH)
-export PATH=$PATH:$PWD/.R/bin
-export PATH=$PATH:$PWD/.Python/bin
-export PYTHONPATH=$PWD/.Python/bin
+export PATH=$PATH:$BasePath/.R/bin
+export PATH=$PATH:$BasePath/.Python/bin
+export PYTHONPATH=$BasePath/.Python/bin
 
 #Execute the package installer scripts
-
-Rscript --vanilla $PWD/.Install_Scripts/R_packages.R 
+Rscript --vanilla $BasePath/.Install_Scripts/R_packages.R 
 ./.Install_Scripts/Python_packages.sh 
 
 

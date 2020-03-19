@@ -1,13 +1,14 @@
 #!/usr/bin/env Rscript
 
 #Handle everything with cran
-install.packages("devtools", repos = "https://cloud.r-project.org")
-install.packages("plyr", repos = "https://cloud.r-project.org")
-library("devtools")
+repo <- "https://cloud.r-project.org"
 
-install_version("getopt",      version = "1.20.3", repos = "https://cloud.r-project.org")
-install_version("readr",       version = "1.3.1",  repos = "https://cloud.r-project.org") 
-install.packages("BiocManager", repos = "https://cloud.r-project.org") 
+lib <- paste(getwd(),"/.R/lib/R/library",sep="")
+
+install.packages("plyr", lib = lib, repos = repo)
+install.packages("BiocManager", lib = lib, repos = repo) 
+install.packages("getopt",lib = lib, repos = repo)
+install.packages("readr", lib = lib, repos = repo) 
 
 
 #Handle everything in bioconductor
