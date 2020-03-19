@@ -96,6 +96,10 @@ string Index_tid = task ( taskName := "Indexing Genome", cpus := n,  Index_Check
 
 wait Index_tid
 
+#Delete the Log.out
+LogOut := "Log.out"
+if (LogOut.exists()) {LogOut.rm()}
+
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
 #Handle any trimming
