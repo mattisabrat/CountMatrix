@@ -5,4 +5,4 @@ export PATH=$PWD/.Python/bin:$PATH
 export PYTHONPATH=$PWD/.Python/bin
 
 pip3 install --upgrade pip
-pip3 install multiqc==1.7
+pip3 install multiqc
