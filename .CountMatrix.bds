@@ -98,7 +98,9 @@ wait Index_tid
 
 #Delete the Log.out
 LogOut := "Log.out"
-if (LogOut.exists()) {LogOut.rm()}
+if (LogOut.exists()) {
+    sys mv $LogOut $LogOut_Path
+    }
 
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
