@@ -12,10 +12,11 @@ spec <- matrix(c(
     'RData_Output',          'd', 1, "character",
     'Read_Count',            'r', 1, "integer",
     'Sample_Names',          's', 1, "character",
-    'Flag_String',           'f', 1, "character",
+    'Flag_String',           'f', 1, "character"),
 byrow=TRUE, ncol=4)
+
 opt <- getopt(spec)
-    
+
 #Break apart the list variables that had to be read in as a single string
 Quant_File_Path <- c(opt$Quant_Path)  
 Sample_Names    <- c(opt$Sample_Names)

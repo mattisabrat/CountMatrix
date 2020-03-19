@@ -159,7 +159,7 @@ par{
     for( string Sample_Basename : Raw_Reads_ls ) {
                 
         #Determine if reads are paried or unpaired. 
-        #Grab the paths to the .fastq.gz file(s) for use in subsequent modules            
+        #Grab the paths to the .fastq.gz file(s)    
         Sample_Path            :=  Raw_Reads + "/" + Sample_Basename
         if ( t == true ) {Sample_Path = Trimmed_Reads + "/" + Sample_Basename}
         Fastq_Files            := Sample_Path.dirPath("*P.fastq.gz")
@@ -193,13 +193,14 @@ par{
         Quant_Destination   := Quant_Files + "/" + Sample_Basename + "/"
         
         #Prepare the output dir            
-        if ( !Quant_Destination.isDir() )      { Quant_Destination.mkdir() }  
+        if (!Quant_Destination.isDir()) {Quant_Destination.mkdir()}  
         
         #need to pass the fastq file names in individually
         #variable scoping
         string Read_1 = "Not_A_File"
         string Read_2 = "Not_A_File"
-                    
+        
+        #assign reads
         if ( Read_Count == 1 ) {
             Read_1 = Fastq_Files[0]
         } else if ( Read_Count == 2 ) {
@@ -231,26 +232,15 @@ string[] Quant_Files_ls = Quant_Files.dir()
 
 #I want to pass all the paths to these output files to our concatenation script so lets init some variables.
 string[] Concat_Paths
-
- 
     
-#parellelized for loop where each loop iteration is a different sample within either the Quant_Files directory    
+#parellelized for loop where each loop iteration is a different sample within the Quant_Files directory    
 par{
     for( string Sample_Basename : Quant_Files_ls ) {
                 
         #Grab the paths to the .fastq.gz file(s) for use in subsequent modules        
         Sample_Path            := Quant_Files + "/" + Sample_Basename
-        string[] End_String     = [ "bam", "sam", ".sf" ]
-        string[] Sample_ls      = Sample_Path.dirPath()                     
-        string Quant_File                    
-                    
-                    
-        for ( string File : Sample_ls )  {
-            if ( File.endsWith( End_String[0] ) || File.endsWith( End_String[1] ) || File.endsWith( End_String[2] )) { 
-                Quant_File = File 
-            }
-        } 
-               
+        Quant_File := Sample_Path.dirPath("*.bam").join()                    
+  
         #Set up the check file and output destinations of the Aggregation
         Agg_Check      := Sample_Path + "/.chk_" + Sample_Basename + "_agg.txt"
         Agg_Dir        := Aggregates + "/" + Sample_Basename
@@ -275,36 +265,37 @@ par{
                     
 wait        
 
+
+par{ #just cause we can
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 #Next we need to grab all those individual aggreagation vector and concatenate them to create the count matrix
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-#Prepare the list of aggregate vecotr paths for passing to R
-Concat_Paths_Joined := Concat_Paths.join(' SPLIT ')
-
     
-#Path to outputs
-Count_Matrix_Path := Experiment + "Count_Matrix.rds"
-CSV_Path          := Experiment + "Count_Matrix.csv"
-FC_Summary_Path   := Feature_Counts + "/FeatureCountsReport.txt.summary"
+    #Prepare the list of aggregate vecotr paths for passing to R
+    Concat_Paths_Joined := Concat_Paths.join(' SPLIT ')
+        
+    #Path to outputs
+    Count_Matrix_Path := Experiment + "Count_Matrix.rds"
+    CSV_Path          := Experiment + "Count_Matrix.csv"
+    FC_Summary_Path   := Feature_Counts + "/FeatureCountsReport.txt.summary"
 
-#Run the concatenation
-string Concat_tid = task ( taskName := "Assembling Count Matrix: "+e, cpus := n) {
+    #Run the concatenation
+    string Concat_tid = task ( taskName := "Assembling Count Matrix: "+e, cpus := n) {
 
-    #Run the concatenation script
-    sys Rscript $Pipe_Modules/Concat.R -i "$Concat_Paths_Joined" -n $n -o $Count_Matrix_Path -c $CSV_Path -f $FC_Summary_Path
+        #Run the concatenation script
+        sys Rscript $Pipe_Modules/Concat.R -i "$Concat_Paths_Joined" -n $n -o $Count_Matrix_Path -c $CSV_Path -f $FC_Summary_Path
+    }
 
-}
-
-wait
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 #Finally we need to bring all of the reports from all softwares throughout the pipeline together into one high level QC report using MultiQC
 #This QC report will be left at the head of the Experiment directory
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#Run the MultiQC
-string MultiQC_tid = task ( taskName := "Creating QC Report: "+e, cpus := n) {
-        
-    #Run the MultiQC script
-    sys $Pipe_Modules/MultiQC.sh -e $Experiment -f $"$MultiQC_Flags"
+    
+    #Run the MultiQC
+    string MultiQC_tid = task ( taskName := "Creating QC Report: "+e, cpus := n) {
+            
+        #Run the MultiQC script
+        sys $Pipe_Modules/MultiQC.sh -e $Experiment -f $"$MultiQC_Flags"
+    }
 }
