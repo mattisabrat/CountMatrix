@@ -15,8 +15,6 @@ while getopts ':o:n:1:2:r:i:f:' flag; do
     esac
 done
 
-echo $Read_1
-
 #Now lets build the string of the designated command in pieces
 Base_String="STAR --genomeDir ${Index_Path} --outFileNamePrefix ${Quant_Destination} --runThreadN ${nThreads}  --outSAMtype BAM SortedByCoordinate" 
     case ${Read_Count} in
