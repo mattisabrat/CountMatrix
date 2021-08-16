@@ -36,10 +36,9 @@ Good news: It self assembles.
 
 ## Basic Usage
 
-    ./CountMatrix.sh -e ${Experimental_Directory} -m ${Mode}
+    ./CountMatrix.sh -e ${Experimental_Directory} 
 
 * -e ${Experimental_Directory} : Full path to a correctly formatted experimental directory 
-* -m ${Mode} : STAR or salmon
 
 ### Additional Options
 * -n ${nThreads} : The number of threads to be used by each task within the pipeline, default is 1
