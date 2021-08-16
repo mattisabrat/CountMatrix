@@ -54,13 +54,10 @@ The pipeline requires the read files be in .fastq.gz or .fq.gz format.
 Don't worry about it. Place the read files into sample folders in raw_reads and the pipeline will infer if you've given it PE or SE reads based on the number of .fastq.gz files. It should even be able to run if an experiment contains a mix of PE and SE samples, though I don't know why you would ever do that. 
 
 ### STAR
-In STAR mode, the Experimental_Directory must contain a folder named **genome**. This folder needs to contain an .fa or.fna genome file and a .gtf annotation file to build the genome indices.
+The Experimental_Directory must contain a folder named **genome**. This folder needs to contain an .fa or.fna genome file and a .gtf annotation file to build the genome indices.
 
-### Salmon
-In Salmon mode, the Experimental_Directory must contain a folder named **transcriptome**. This folder needs to contain a .fa trasnscriptome file and a .csv file for aggregating transcript level abundances to genes using tximport. For more info on constructing this .csv file, see the [tximport docs](https://bioconductor.org/packages/release/bioc/html/tximport.html).
-
-### Reusing genome and trascriptome folders
-Once the pipeline has been run, you can reuse the processed **transcriptome** or **genome** folder in subsequent experiments where the same genome/transcriptome is needed. Simply copy and pasted the whole folder into a new Experimental_Directory. When this new experiment is run through the pipeline, it will skip the indexing steps saving a bit of time. 
+### Reusing genome folders
+Once the pipeline has been run, you can reuse the processed **genome** folder in subsequent experiments where the same genome is needed. Simply copy and paste the whole folder into a new Experimental_Directory. When this new experiment is run through the pipeline, it will skip the indexing steps saving a bit of time. 
 
 ## Flags
 This pipe uses overwritable defaults to manage the options used by each of its consituent softwares. The idea behind this is that a lab could set up the pipeline with their preferred settings. If these default settings are ever inappropriate for an experiment, they can be overwritten for a single pipeline run without having to touch the defaults, leaving the lab's typical pipeline settings unaltered.
@@ -87,18 +84,7 @@ To overwrite the default flags for a pipeline run, the -f flag must be provided 
 * STAR aggregating (featureCounts) :
 
       featureCounts( files = Quant_File_Paths, annot.ext = opt$Annotation, isGTFAnnotationFile = TRUE, nthreads = opt$nThreads, isPairedEnd = Is_Paired,)
-* Salmon indexing :
 
-      salmon index -p ${nThreads} -t ${UnIndexed_FA} -i ${Index_Destination}
-* Salmon quantifying PE :
-
-      salmon quant -p ${nThreads} -i ${Index_Path} -o ${Quant_Destination} -l A -1 ${Read_1} -2 ${Read_2}
-* Salmon quantifying SE :
-
-      salmon quant -p ${nThreads} -i ${Index_Path} -o ${Quant_Destination} -l A -r ${Read_1}
-* Salmon aggreagting (tximport) :
-
-      tximport( files = Quant_File_Paths, type = "salmon", tx2gene = tx2gene,)
 * Trimmomatic PE :
 
       java -jar ${Jar} PE -threads ${nThreads} ${Fastqs_Joined} -baseout ${Trim_Output_File}
@@ -118,7 +104,6 @@ To overwrite the default flags for a pipeline run, the -f flag must be provided 
 * R-3.6.0
 * Python-3.5.5
 * STAR-2.7.1a
-* Salmon-0.9.1
 * Trimmomatic-0.36
 * tximport-1.12.3
 * Rsubread-1.34.4
