@@ -75,7 +75,10 @@ if ( !(Trimmed_Reads.isDir()) & t == true ) { Trimmed_Reads.mkdir() }
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #Get the paths to the files
-UnIndexed_FA := Genome.dirPath("*.fna").join()
+UnIndexed_FA := Genome.dirPath("*.fa").join()
+UnIndexed_FNA := Genome.dirPath("*.fna").join()
+string[] UnIndexed_list = [UnIndexed_FA, UnIndexed_FNA]
+UnIndexed_Final := UnIndexed_list.join()
 Annotation := Genome.dirPath("*.gtf").join()
 
 #Set the necessary paths        
@@ -87,11 +90,13 @@ LogOut_Path       := Genome + "/Log.out"
 if ( ! Index_Path.isDir() ) { Index_Path.mkdir() }  
     
 #Run the Index module
-string Index_tid = task ( taskName := "Indexing Genome", cpus := n,  Index_Check <- UnIndexed_FA) {
+
+string Index_tid = task ( taskName := "Indexing Genome", cpus := n,  Index_Check <- UnIndexed_Final) {
     
     #Populated the check file and run the task     
-    sys date >> $Index_Check   
-    sys $Pipe_Modules/Index.sh -i $UnIndexed_FA -o $Index_Path -n $n -g $Annotation -f "$Index_Flags" -l $LogOut_Path
+    sys date >> $Index_Check
+
+    sys $Pipe_Modules/Index.sh -i $UnIndexed_Final -o $Index_Path -n $n -g $Annotation -f "$Index_Flags" -l $LogOut_Path
 }
 
 wait Index_tid
