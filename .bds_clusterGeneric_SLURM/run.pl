@@ -40,7 +40,7 @@ $saveStderr = shift @ARGV;
 
 # Now @ARGS contains the command line to execute in the cluster
 $cmd = join(' ', @ARGV);
-$jobName = "bds_" . $ARGV[0];
+$jobName = "CountMatrix_" . $ARGV[0];
 
 # SLURM default is time in minutes, we round up to the nearest minute
 $timeout = int(($timeout + 0.5)/ 60);
@@ -52,21 +52,7 @@ $mem = int(($mem + 0.5)/ 1048576);
 # Create command line arguments for sbatch
 #---
 
-$sbatch = "sbatch --parsable --no-requeue --output $saveStdout --error $saveStderr --job-name=$jobName ";
-$sbatch .= " --partition=$queue " if( $queue ne '' );
-
-if( $cpus > 0 ) {
-        $sbatch .= " --ntasks-per-node=$cpus ";
-}
-
-if( $mem > 0 ) {
-        $sbatch .= " --mem=$mem ";
-}
-
-if( $timeout > 0 ) {
-        $sbatch .= " --time=$timeout ";
-}
-
+$sbatch = "sbatch -N 1 -n $cpus --job-name=$jobName ";
 
 #---
 # Execute 'sbatch' command
